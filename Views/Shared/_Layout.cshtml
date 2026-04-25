@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Control de Asistencia - Cursos Virtuales</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" />
+</head>
+<body>
+
+    <div class="topbar">
+        <div class="brand">Control de Asistencia</div>
+
+        <div class="userbox">
+            @if (Session["USER"] != null)
+            {
+                <span>Usuario: @Session["USER"]</span>
+                <a href="@Url.Action("Logout", "Auth")" class="link">Cerrar sesión</a>
+            }
+            else
+            {
+                <span>No autenticado</span>
+            }
+        </div>
+    </div>
+
+    <div class="menu">
+        <a href="@Url.Action("Index", "Home")">Inicio</a>
+        <a href="@Url.Action("Index", "Usuarios")">Usuarios</a>
+        <a href="@Url.Action("Index", "Maestros")">Maestros</a>
+        <a href="@Url.Action("Index", "Cursos")">Cursos</a>
+        <a href="#">Registrar Asistencia</a>
+        <a href="#">Estadísticas</a>
+    </div>
+
+    <div class="container">
+        @RenderBody()
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        var success = '@TempData["Success"]';
+        var error = '@TempData["Error"]';
+        var warning = '@TempData["Warning"]';
+
+        if (success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: success,
+                confirmButtonColor: '#3085d6'
+            });
+        }
+
+        if (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error,
+                confirmButtonColor: '#d33'
+            });
+        }
+
+        if (warning) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Aviso',
+                text: warning,
+                confirmButtonColor: '#f39c12'
+            });
+        }
+
+    });
+</script>

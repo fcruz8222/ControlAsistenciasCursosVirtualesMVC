@@ -1,0 +1,219 @@
+﻿@model ControlAsistenciasCursosVirtuales.Models.CursosIndexViewModel
+
+@{
+    ViewBag.Title = "Administrar Cursos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card" style="max-width:1100px;">
+    <h2 class="card-title">Administración de Cursos</h2>
+
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <button type="button" class="btn btn-sm" onclick="abrirCursoModalNuevo()">
+                ➕ Crear Curso
+            </button>
+        </div>
+
+        <div class="toolbar-rigth search-group">
+            @using (Html.BeginForm("Index", "Cursos", FormMethod.Get))
+            {
+                @Html.TextBoxFor(m => m.Buscar, new { @class = "search", placeholder = "Buscar por nombre..." })
+
+                <button type="submit" class="btn btn-sm">Buscar</button>
+
+                <a href="@Url.Action("Index", "Cursos")" class="btn btn-sm btn-secondary">
+                    Limpiar
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Mensaje))
+    {
+        <div class="error" style="margin-top:12px;">
+            @Model.Mensaje
+        </div>
+    }
+
+    <div style="margin-top:16px;">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tipo</th>
+                    <th>Nombre</th>
+                    <th>Maestro</th>
+                    <th>Fecha/Hora</th>
+                    <th>Duración (h)</th>
+                    <th>Status</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model.Cursos)
+                {
+                    <tr>
+                        <td>@item.IdCurso</td>
+                        <td>@item.TipoCurso</td>
+                        <td>@item.Nombre</td>
+                        <td>@item.MaestroNombre</td>
+                        <td>@item.FechaHora.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@item.DuracionHoras</td>
+                        <td>
+                            <span class="badge @(item.Status == "ACTIVO" ? "activo" : "inactivo")">
+                                @item.Status
+                            </span>
+                        </td>
+                        <td>
+                            <a class="btn btn-sm btn-primary"
+                               href="@Url.Action("Editar", "Cursos", new { id = item.IdCurso, buscar = Model.Buscar })">
+                                Editar
+                            </a>
+
+                                @Html.Hidden("id", item.IdCurso)
+                                @Html.Hidden("buscar", Model.Buscar)
+
+                                <button type="button"
+                                        class="btn btn-sm btn-secondary"
+                                        onclick="confirmDelete('@item.IdCurso')">
+                                    Borrar
+                                </button>
+
+                                <form id="formDelete_@item.IdCurso"
+                                      method="post"
+                                      action="@Url.Action("Borrar", "Cursos")"
+                                      style="display:none;">
+                                    <input type="hidden" name="id" value="@item.IdCurso" />
+                                    <input type="hidden" name="buscar" value="@Model.Buscar" />
+                                </form>
+                            
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div id="cursoModal" class="modal-overlay">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <span class="modal-title">
+                @(Model.Curso.IdCurso.HasValue ? "Editar Curso (ID: " + Model.Curso.IdCurso + ")" : "Crear Curso")
+            </span>
+            <span class="modal-close" onclick="cerrarCursoModal()">×</span>
+        </div>
+
+        @using (Html.BeginForm("Guardar", "Cursos", FormMethod.Post))
+        {
+            @Html.HiddenFor(m => m.Buscar)
+            @Html.HiddenFor(m => m.Curso.IdCurso)
+
+            @Html.ValidationSummary(true, "", new { @class = "error" })
+
+            <div class="field">
+                <label>Tipo de Curso</label>
+                @Html.DropDownListFor(m => m.Curso.TipoCurso, Model.Curso.TiposCurso)
+                @Html.ValidationMessageFor(m => m.Curso.TipoCurso, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Nombre</label>
+                @Html.TextBoxFor(m => m.Curso.Nombre)
+                @Html.ValidationMessageFor(m => m.Curso.Nombre, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Descripción</label>
+                @Html.TextAreaFor(m => m.Curso.Descripcion, 3, 20, null)
+                @Html.ValidationMessageFor(m => m.Curso.Descripcion, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Maestro</label>
+                @Html.DropDownListFor(m => m.Curso.IdMaestro, Model.Curso.Maestros)
+                @Html.ValidationMessageFor(m => m.Curso.IdMaestro, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Status</label>
+                @Html.DropDownListFor(m => m.Curso.Status, Model.Curso.StatusList)
+                @Html.ValidationMessageFor(m => m.Curso.Status, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Fecha</label>
+                @Html.TextBoxFor(m => m.Curso.Fecha, new { type = "date" })
+                @Html.ValidationMessageFor(m => m.Curso.Fecha, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Hora</label>
+                @Html.TextBoxFor(m => m.Curso.Hora, new { type = "time" })
+                @Html.ValidationMessageFor(m => m.Curso.Hora, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Duración</label>
+                @Html.TextBoxFor(m => m.Curso.DuracionHoras)
+                @Html.ValidationMessageFor(m => m.Curso.DuracionHoras, "", new { @class = "error" })
+            </div>
+
+            <div class="modal-footer">
+                <div>
+                    <button type="submit" class="btn btn-sm">Guardar</button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="cerrarCursoModal()">Cancelar</button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function abrirCursoModal() {
+        document.getElementById("cursoModal").style.display = "flex";
+    }
+
+    function cerrarCursoModal() {
+        document.getElementById("cursoModal").style.display = "none";
+    }
+
+    function abrirCursoModalNuevo() {
+        abrirCursoModal();
+    }
+
+    @if (ViewBag.AbrirModal == true)
+    {
+        <text>
+    abrirCursoModal();
+        </text>
+    }
+
+    function confirmDelete(id) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: 'Si tiene asistencias se desactivará, si no se eliminará.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, continuar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var form = document.getElementById('formDelete_' + id);
+
+                if (form) {
+                    form.submit();
+                } else {
+                    Swal.fire('Error', 'No se encontró el formulario para eliminar.', 'error');
+                }
+            }
+        });
+    }
+
+</script>

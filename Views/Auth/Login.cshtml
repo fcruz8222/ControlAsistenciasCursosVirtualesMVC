@@ -1,0 +1,48 @@
+﻿@model ControlAsistenciasCursosVirtuales.Models.LoginViewModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+    <link href="~/Content/Site.css" rel="stylesheet" />
+</head>
+<body class="login-body">
+
+    <div class="login-wrapper">
+        <div class="login-box">
+
+            <h2 class="login-title">Inicio de Sesión</h2>
+
+            @using (Html.BeginForm("Login", "Auth", FormMethod.Post))
+            {
+                @Html.ValidationSummary(true, "", new { @class = "error" })
+
+                <div class="form-group">
+                    <label>Usuario</label>
+                    @Html.TextBoxFor(m => m.CodUser, new { @class = "input" })
+                    @Html.ValidationMessageFor(m => m.CodUser, "", new { @class = "error" })
+                </div>
+
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    @Html.PasswordFor(m => m.Pass, new { @class = "input" })
+                    @Html.ValidationMessageFor(m => m.Pass, "", new { @class = "error" })
+                </div>
+
+                if (ViewBag.Error != null)
+                {
+                    <div class="error">@ViewBag.Error</div>
+                }
+
+                <button type="submit" class="login-btn">Iniciar sesión</button>
+            }
+
+        </div>
+    </div>
+
+</body>
+</html>
