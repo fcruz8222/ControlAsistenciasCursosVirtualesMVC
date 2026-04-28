@@ -1,0 +1,56 @@
+﻿@model ControlAsistenciasCursosVirtuales.Models.AlumnoViewModel
+@*
+    Vista de CONFIRMACIÓN antes de eliminar
+*@
+
+@{
+    ViewBag.Title = "Eliminar Alumno";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card" style="max-width:700px;">
+    <h2 class="card-title">Eliminar Alumno</h2>
+
+    <p>¿Está seguro que desea eliminar este alumno?</p>
+
+    @* ===== DATOS MOSTRADOS ===== *@
+    <div class="form-group">
+        <strong>Código:</strong> @Model.Codigo
+    </div>
+
+    <div class="form-group">
+        <strong>Nombres:</strong> @Model.Nombres
+    </div>
+
+    <div class="form-group">
+        <strong>Apellidos:</strong> @Model.Apellidos
+    </div>
+
+    <div class="form-group">
+        <strong>Email:</strong> @Model.Email
+    </div>
+
+    <div class="form-group">
+        <strong>Usuario:</strong> @Model.CodigoUsuario
+    </div>
+
+    @using (Html.BeginForm("Delete", "Alumnos", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+        @* ID oculto necesario para eliminar *@
+        @Html.HiddenFor(m => m.IdEstudiante)
+
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button type="submit" class="btn btn-sm">
+                    Eliminar
+                </button>
+
+                <a href="@Url.Action("Index","Alumnos")" class="btn btn-sm btn-secondary">
+                    Cancelar
+                </a>
+            </div>
+        </div>
+    }
+</div>

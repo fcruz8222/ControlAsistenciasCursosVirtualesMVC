@@ -1,0 +1,102 @@
+﻿@model ControlAsistenciasCursosVirtuales.Models.AlumnoViewModel
+@*
+    Vista para CREAR un alumno
+    Recibe un ViewModel con las propiedades del alumno
+*@
+
+@{
+    ViewBag.Title = "Crear Alumno";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card" style="max-width:800px;">
+    <h2 class="card-title">Crear Alumno</h2>
+
+    @using (Html.BeginForm("Create", "Alumnos", FormMethod.Post))
+    {
+        @* Envía los datos al método POST del Controller *@
+        @Html.AntiForgeryToken()
+        @* Protección de seguridad *@
+
+        @Html.ValidationSummary(true, "", new { @class = "error" })
+        @* Muestra errores generales *@
+
+        @* ===== CAMPOS ===== *@
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Codigo)
+            @Html.TextBoxFor(m => m.Codigo, new
+            {
+                @class = "input",
+                placeholder = "0000-00",
+                maxlength = "7",
+                oninput = "formatoCodigo(this)"
+            })
+            @Html.ValidationMessageFor(m => m.Codigo, "", new { @class = "error" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Nombres)
+            @Html.TextBoxFor(m => m.Nombres, new { @class = "input" })
+            @Html.ValidationMessageFor(m => m.Nombres, "", new { @class = "error" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Apellidos)
+            @Html.TextBoxFor(m => m.Apellidos, new { @class = "input"})
+            @Html.ValidationMessageFor(m => m.Apellidos,"", new { @class = "error"})
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Email)
+            @Html.TextBoxFor(m => m.Email, new { @class = "input", type = "email" })
+            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "error" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Telefono)
+            @Html.TextBoxFor(m => m.Telefono, new { @class = "input" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.CodigoUsuario, "Usuario")
+            @Html.TextBoxFor(m => m.CodigoUsuario, new { @class = "input" })
+            @Html.ValidationMessageFor(m => m.CodigoUsuario, "", new { @class = "error"})
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Contrasena)
+            @Html.PasswordFor(m => m.Contrasena, new { @class = "input" })
+        </div>
+
+        <div class="form-group">
+            <label>
+                @Html.LabelFor(m => m.Activo, "Estado")
+                @Html.DropDownListFor(m => m.Activo, Model.EstadoList, "Seleccione estado", new {@class = "input"})
+               @Html.ValidationMessageFor(m => m.Activo, "", new {@Class = "error"})
+            </label>
+        </div>
+
+        @* ===== BOTONES ===== *@
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button type="submit" class="btn btn-sm">
+                    Guardar
+                </button>
+
+                <a href="@Url.Action("Index","Alumnos")" class="btn btn-sm btn-secondary">
+                    Cancelar
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<script>// Máscara para código tipo 0000-00
+    function formatoCodigo(input) {
+        let valor = input.value.replace(/\D/g, '');
+        if (valor.length > 4) {
+            valor = valor.substring(0, 4) + '-' + valor.substring(4, 6);
+        }
+        input.value = valor;
+    }</script>

@@ -1,4 +1,5 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using System.Data.SqlClient;
 using System.Web.Mvc;
 using ControlAsistenciasCursosVirtuales.Helpers;
 using ControlAsistenciasCursosVirtuales.Models;
@@ -20,7 +21,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                 return View(model);
 
             string sql = @"
-                SELECT CodigoUsuario, NombreUsuario, Rol, Status
+                SELECT CodigoUsuario, NombreUsuario, Rol, Activo
                 FROM dbo.Usuario
                 WHERE CodigoUsuario = @CodUser AND Contraseña = @Pass
             ";
@@ -29,12 +30,12 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                 new SqlParameter("@CodUser", model.CodUser.Trim()),
                 new SqlParameter("@Pass", model.Pass.Trim())
             );
-
+            
             if (dt.Rows.Count == 1)
             {
                 var row = dt.Rows[0];
-
-                if (row["Status"].ToString() != "ACTIVO")
+                bool activo = row["Activo"] != DBNull.Value && Convert.ToBoolean(row["Activo"]);
+                if (!activo)
                 {
                     ViewBag.Error = "Usuario inactivo.";
                     return View(model);
