@@ -105,7 +105,7 @@
             <span class="modal-title">
                 @(Model.Curso.IdCurso.HasValue ? "Editar Curso (ID: " + Model.Curso.IdCurso + ")" : "Crear Curso")
             </span>
-            <span class="modal-close" onclick="cerrarCursoModal()">×</span>
+            <span class="modal-close" onclick="cancelarCurso()">×</span>
         </div>
 
         @using (Html.BeginForm("Guardar", "Cursos", FormMethod.Post))
@@ -168,7 +168,7 @@
                     <button type="submit" class="btn btn-sm">Guardar</button>
                 </div>
                 <div>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="cerrarCursoModal()">Cancelar</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="cancelarCurso()">Cancelar</button>
                 </div>
             </div>
         }
@@ -188,10 +188,14 @@
         abrirCursoModal();
     }
 
+    function cancelarCurso() {
+        window.location.href = '@Url.Action("Index", "Cursos", new { buscar = Model.Buscar })';
+    }
+
     @if (ViewBag.AbrirModal == true)
     {
         <text>
-    abrirCursoModal();
+            abrirCursoModal();
         </text>
     }
 

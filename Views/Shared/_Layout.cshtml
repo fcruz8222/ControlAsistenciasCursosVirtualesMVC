@@ -23,14 +23,31 @@
         </div>
     </div>
 
-    <div class="menu">
-        <a href="@Url.Action("Index", "Home")">Inicio</a>
+    @{
+        var rol = Session["ROLE"] == null ? "" : Session["ROLE"].ToString();
+    }
+
+<div class="menu">
+   
+    <a href="@Url.Action("Index", "Home")">Inicio</a>
+
+    @if (rol == "Admin")
+    {
         <a href="@Url.Action("Index", "Usuarios")">Usuarios</a>
         <a href="@Url.Action("Index", "Maestros")">Maestros</a>
+    }
+
+    @if (rol == "Admin" || rol == "Maestro")
+    {
         <a href="@Url.Action("Index", "Cursos")">Cursos</a>
+    }
+
+    @if (rol == "Admin" || rol == "Maestro" || rol == "Estudiante")
+    {
         <a href="#">Registrar Asistencia</a>
         <a href="#">Estadísticas</a>
-    </div>
+}
+</div>
 
     <div class="container">
         @RenderBody()
@@ -75,3 +92,7 @@
 
     });
 </script>
+
+<script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.6.0.min.js"></script>
+<script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.5/jquery.validate.min.js"></script>
+<script src="https://ajax.aspnetcdn.com/ajax/mvc/5.2.3/jquery.validate.unobtrusive.min.js"></script>

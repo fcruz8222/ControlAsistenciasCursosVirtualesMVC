@@ -11,5 +11,9 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
 
             return View();
         }
+        public ActionResult SinAcceso()
+        {
+            return View();
+        }
     }
 }

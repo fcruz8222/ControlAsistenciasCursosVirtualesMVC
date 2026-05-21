@@ -6,9 +6,12 @@ using System.Globalization;
 using System.Web.Mvc;
 using ControlAsistenciasCursosVirtuales.Helpers;
 using ControlAsistenciasCursosVirtuales.Models;
+using ControlAsistenciasCursosVirtuales.Filters;
+using System.Linq;
 
 namespace ControlAsistenciasCursosVirtuales.Controllers
 {
+    [RoleAuthorize("Admin", "Maestro")]
     public class CursosController : Controller
     {
         public ActionResult Index(string buscar = "", string mensaje = "")
@@ -162,7 +165,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
             return RedirectToAction("Index", new { buscar = buscar });
         }
 
-        private List<CursoListaViewModel> ObtenerCursos(string filtro = "")
+        /*private List<CursoListaViewModel> ObtenerCursos(string filtro = "")
         {
             string sql = @"
                 SELECT c.IdCurso, c.TipoCurso, c.Nombre,
@@ -190,6 +193,36 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                     DuracionHoras = Convert.ToDecimal(r["DuracionHoras"])
                 });
             }
+
+            return lista;
+        }*/
+
+        private List<CursoListaViewModel> ObtenerCursos(string filtro = "")
+        {
+                    string sql = @"
+                SELECT c.IdCurso, c.TipoCurso, c.Nombre,
+                       m.Nombre AS MaestroNombre,
+                       c.Status, c.FechaHora, c.DuracionHoras
+                FROM dbo.Cursos c
+                INNER JOIN dbo.Maestros m ON m.IdMaestro = c.IdMaestro
+                WHERE (@filtro='' OR c.Nombre LIKE '%' + @filtro + '%')
+                ORDER BY c.IdCurso DESC;
+            ";
+
+            var dt = Db.Query(sql, new SqlParameter("@filtro", filtro ?? ""));
+
+            var lista = dt.AsEnumerable()
+                .Select(r => new CursoListaViewModel
+                {
+                    IdCurso = Convert.ToInt32(r["IdCurso"]),
+                    TipoCurso = r["TipoCurso"].ToString(),
+                    Nombre = r["Nombre"].ToString(),
+                    MaestroNombre = r["MaestroNombre"].ToString(),
+                    Status = r["Status"].ToString(),
+                    FechaHora = Convert.ToDateTime(r["FechaHora"]),
+                    DuracionHoras = Convert.ToDecimal(r["DuracionHoras"])
+                })
+                .ToList();
 
             return lista;
         }
@@ -233,9 +266,9 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
             curso.TiposCurso = new List<SelectListItem>
             {
                 new SelectListItem { Text = "-- Seleccione --", Value = "" },
-                new SelectListItem { Text = "Virtual", Value = "Virtual" },
-                new SelectListItem { Text = "Presencial", Value = "Presencial" },
-                new SelectListItem { Text = "Mixto", Value = "Mixto" }
+                new SelectListItem { Text = "Virtual", Value = "Virtual" }
+               /* new SelectListItem { Text = "Presencial", Value = "Presencial" },
+                new SelectListItem { Text = "Mixto", Value = "Mixto" }*/
             };
 
             curso.StatusList = new List<SelectListItem>
@@ -252,14 +285,23 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
 
             var dtM = Db.Query("SELECT IdMaestro, Nombre FROM dbo.Maestros WHERE Status='ACTIVO' ORDER BY Nombre");
 
-            foreach (DataRow r in dtM.Rows)
+            /*foreach (DataRow r in dtM.Rows)
             {
                 curso.Maestros.Add(new SelectListItem
                 {
                     Text = r["Nombre"].ToString(),
                     Value = r["IdMaestro"].ToString()
                 });
-            }
+            }*/
+            var maestros = dtM.AsEnumerable()
+                .Select(r => new SelectListItem
+                {
+                    Text = r["Nombre"].ToString(),
+                    Value = r["IdMaestro"].ToString()
+                })
+                .ToList();
+
+            curso.Maestros.AddRange(maestros);
         }
 
         private bool TryBuildFechaHora(string fecha, string hora, out DateTime result)

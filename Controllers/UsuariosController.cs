@@ -5,9 +5,11 @@ using System.Data.SqlClient;
 using System.Web.Mvc;
 using ControlAsistenciasCursosVirtuales.Helpers;
 using ControlAsistenciasCursosVirtuales.Models;
+using ControlAsistenciasCursosVirtuales.Filters;
 
 namespace ControlAsistenciasCursosVirtuales.Controllers
 {
+    [RoleAuthorize("Admin")]
     public class UsuariosController : Controller
     {
         public ActionResult Index()

@@ -1,0 +1,13 @@
+﻿@{
+    ViewBag.Title = "Sin acceso";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card">
+    <h2>Acceso denegado</h2>
+    <p>No tienes permisos para ingresar a esta sección.</p>
+
+    <a class="btn btn-sm" href="@Url.Action("Index", "Home")">
+        Volver al inicio
+    </a>
+</div>
