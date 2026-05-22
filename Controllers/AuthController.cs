@@ -20,7 +20,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                 return View(model);
 
             string sql = @"
-                SELECT CodigoUsuario, NombreUsuario, Rol, Status
+                SELECT CodigoUsuario, NombreUsuario, Rol, Activo
                 FROM dbo.Usuario
                 WHERE CodigoUsuario = @CodUser AND Contraseña = @Pass
             ";
@@ -34,7 +34,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
             {
                 var row = dt.Rows[0];
 
-                if (row["Status"].ToString() != "ACTIVO")
+                if (!System.Convert.ToBoolean(row["Activo"]))
                 {
                     ViewBag.Error = "Usuario inactivo.";
                     return View(model);

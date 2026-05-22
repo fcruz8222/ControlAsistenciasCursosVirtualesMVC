@@ -29,7 +29,7 @@ namespace ControlAsistenciasCursosVirtuales.Models
         public string CodigoUsuario { get; set; }
         public string NombreUsuario { get; set; }
         public string Rol { get; set; }
-        public string Status { get; set; }
+        public bool Activo { get; set; }
     }
 
     public class UsuariosIndexViewModel

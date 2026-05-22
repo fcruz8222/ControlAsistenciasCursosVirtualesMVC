@@ -90,7 +90,7 @@
                     : "Crear Maestro")
             </span>
 
-            <span class="modal-close" onclick="cerrarMaestroModal()">×</span>
+            <span class="modal-close" onclick="cancelarMaestro()">×</span>
         </div>
 
         @using (Html.BeginForm("Guardar", "Maestros", FormMethod.Post))
@@ -120,7 +120,7 @@
 
             <div class="modal-footer">
                 <button type="submit" class="btn btn-sm">Guardar</button>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="cerrarMaestroModal()">Cancelar</button>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="cancelarMaestro()">Cancelar</button>
             </div>
         }
     </div>
@@ -137,6 +137,10 @@
 
     function abrirMaestroModalNuevo() {
         abrirMaestroModal();
+    }
+
+        function cancelarMaestro() {
+        window.location.href = '@Url.Action("Index", "Maestros", new { buscar = Model.Buscar })';
     }
 
     function confirmDeleteMaestro(id) {

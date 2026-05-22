@@ -9,47 +9,49 @@
     <h2 class="card-title">Administración de Usuarios</h2>
 
     <div class="toolbar">
-        <button type="button" class="btn btn-sm" onclick="abrirUsuarioModalNuevo()">
-            ➕ Crear Usuario
-        </button>
+        <div class="toolbar-left">
+            <button type="button" class="btn btn-sm" onclick="abrirUsuarioModalNuevo()">
+                ➕ Crear Usuario
+            </button>
+        </div>
     </div>
 
-    <div style="margin-top:16px;">
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Usuario</th>
-                    <th>Nombre</th>
-                    <th>Rol</th>
-                    <th>Status</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @foreach (var item in Model.Usuarios)
-                {
+        <div style="margin-top:16px;">
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>@item.CodigoUsuario</td>
-                        <td>@item.NombreUsuario</td>
-                        <td>@item.Rol</td>
-                        <td>
-                            <span class="badge @(item.Status == "ACTIVO" ? "activo" : "inactivo")">
-                                @item.Status
-                            </span>
-                        </td>
-                        <td>
-                            <a class="btn btn-sm btn-primary"
-                               href="@Url.Action("Editar", "Usuarios", new { id = item.CodigoUsuario })">
-                                Editar
-                            </a>
-                        </td>
+                        <th>Usuario</th>
+                        <th>Nombre</th>
+                        <th>Rol</th>
+                        <th>Activo</th>
+                        <th>Acciones</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model.Usuarios)
+                    {
+                        <tr>
+                            <td>@item.CodigoUsuario</td>
+                            <td>@item.NombreUsuario</td>
+                            <td>@item.Rol</td>
+                            <td>
+                                <span class="badge @(item.Activo ? "activo" : "inactivo")">
+                                    @(item.Activo ? "ACTIVO" : "INACTIVO")
+                                </span>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-primary"
+                                   href="@Url.Action("Editar", "Usuarios", new { id = item.CodigoUsuario })">
+                                    Editar
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 
 <div id="usuarioModal" class="modal-overlay">
     <div class="modal-box">
@@ -61,7 +63,7 @@
                     : "Editar Usuario (" + Model.Usuario.UsuarioOriginal + ")")
             </span>
 
-            <span class="modal-close" onclick="cerrarUsuarioModal()">×</span>
+            <span class="modal-close" onclick="cancelarUsuarioModal()">×</span>
         </div>
 
         @using (Html.BeginForm("Guardar", "Usuarios", FormMethod.Post))
@@ -108,7 +110,7 @@
 
             <div class="modal-footer">
                 <button type="submit" class="btn btn-sm">Guardar</button>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="cerrarUsuarioModal()">Cancelar</button>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="cancelarUsuarioModal()">Cancelar</button>
             </div>
         }
     </div>
@@ -125,6 +127,10 @@
 
     function abrirUsuarioModalNuevo() {
         abrirUsuarioModal();
+    }
+
+    function cancelarUsuarioModal() {
+        window.location.href = '@Url.Action("Index", "Usuarios")';
     }
 
     @if (ViewBag.AbrirModal == true)

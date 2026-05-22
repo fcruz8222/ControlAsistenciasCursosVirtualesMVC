@@ -71,7 +71,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                             SET CodigoUsuario = @CodigoUsuarioNuevo,
                                 NombreUsuario = @NombreUsuario,
                                 Rol = @Rol,
-                                Status = @Activo
+                                Activo = @Activo
                             WHERE CodigoUsuario = @CodigoUsuarioOriginal;
                         ";
 
@@ -79,7 +79,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                             new SqlParameter("@CodigoUsuarioNuevo", vm.Usuario.CodigoUsuario.Trim()),
                             new SqlParameter("@NombreUsuario", vm.Usuario.NombreUsuario.Trim()),
                             new SqlParameter("@Rol", vm.Usuario.Rol),
-                            new SqlParameter("@Activo", vm.Usuario.Activo ? "ACTIVO" : "INACTIVO"),
+                            new SqlParameter("@Activo", vm.Usuario.Activo),
                             new SqlParameter("@CodigoUsuarioOriginal", vm.Usuario.UsuarioOriginal)
                         );
                     }
@@ -91,7 +91,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                                 NombreUsuario = @NombreUsuario,
                                 Contraseña = @Contrasena,
                                 Rol = @Rol,
-                                Status = @Activo
+                                Activo = @Activo
                             WHERE CodigoUsuario = @CodigoUsuarioOriginal;
                         ";
 
@@ -100,7 +100,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                             new SqlParameter("@NombreUsuario", vm.Usuario.NombreUsuario.Trim()),
                             new SqlParameter("@Contrasena", passwordNueva),
                             new SqlParameter("@Rol", vm.Usuario.Rol),
-                            new SqlParameter("@Activo", vm.Usuario.Activo ? "ACTIVO" : "INACTIVO"),
+                            new SqlParameter("@Activo", vm.Usuario.Activo),
                             new SqlParameter("@CodigoUsuarioOriginal", vm.Usuario.UsuarioOriginal)
                         );
                     }
@@ -119,7 +119,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
 
                     string sql = @"
                         INSERT INTO dbo.Usuario 
-                        (CodigoUsuario, NombreUsuario, Contraseña, Rol, Status)
+                        (CodigoUsuario, NombreUsuario, Contraseña, Rol, Activo)
                         VALUES 
                         (@CodigoUsuario, @NombreUsuario, @Contrasena, @Rol, @Activo);
                     ";
@@ -129,7 +129,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                         new SqlParameter("@NombreUsuario", vm.Usuario.NombreUsuario.Trim()),
                         new SqlParameter("@Contrasena", passwordNueva),
                         new SqlParameter("@Rol", vm.Usuario.Rol),
-                        new SqlParameter("@Activo", vm.Usuario.Activo ? "ACTIVO" : "INACTIVO")
+                        new SqlParameter("@Activo", vm.Usuario.Activo)
                     );
 
                     TempData["Success"] = "Usuario creado correctamente.";
@@ -149,7 +149,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
         private List<UsuarioListaViewModel> ObtenerUsuarios()
         {
             string sql = @"
-                SELECT CodigoUsuario, NombreUsuario, Rol, Status
+                SELECT CodigoUsuario, NombreUsuario, Rol, Activo
                 FROM dbo.Usuario
                 ORDER BY CodigoUsuario DESC;
             ";
@@ -164,7 +164,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                     CodigoUsuario = r["CodigoUsuario"].ToString(),
                     NombreUsuario = r["NombreUsuario"].ToString(),
                     Rol = r["Rol"].ToString(),
-                    Status = r["Status"].ToString()
+                    Activo = Convert.ToBoolean(r["Activo"])
                 });
             }
 
@@ -190,7 +190,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
             usuario.NombreUsuario = r["NombreUsuario"].ToString();
             usuario.Password = "";
             usuario.Rol = r["Rol"].ToString();
-            usuario.Activo = r["Status"].ToString() == "ACTIVO";
+            usuario.Activo = Convert.ToBoolean(r["Activo"]);
 
             CargarRoles(usuario);
             return usuario;

@@ -1,0 +1,93 @@
+﻿@model ControlAsistenciasCursosVirtuales.Models.IniciarClaseViewModel
+
+@{
+    ViewBag.Title = "Mis Clases";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card" style="max-width:1100px;">
+
+    <h2 class="card-title">
+        Mis Clases
+    </h2>
+
+    <div style="margin-top:16px;">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Tipo</th>
+                    <th>Maestro</th>
+                    <th>Fecha y Hora</th>
+                    <th>Duración</th>
+                    <th>Status</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (Model.Cursos != null && Model.Cursos.Count > 0)
+                {
+                    foreach (var item in Model.Cursos)
+                    {
+                        <tr>
+
+                            <td>
+                                @item.Nombre
+                            </td>
+
+                            <td>
+                                @item.TipoCurso
+                            </td>
+
+                            <td>
+                                @item.MaestroNombre
+                            </td>
+
+                            <td>
+                                @item.FechaHora.ToString("dd/MM/yyyy hh:mm tt")
+                            </td>
+
+                            <td>
+                                @item.DuracionHoras horas
+                            </td>
+
+                            <td>
+                                <span class="badge @(item.Status == "ACTIVO" ? "activo" : "inactivo")">
+                                    @item.Status
+                                </span>
+                            </td>
+
+                            <td>
+
+                                <a class="btn btn-sm btn-primary"
+                                   href="@Url.Action("Entrar", "Clase", new { id = item.IdCurso })">
+
+                                    Iniciar Clase
+
+                                </a>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" style="text-align:center;">
+                            No tienes cursos asignados.
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
