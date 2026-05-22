@@ -1,0 +1,118 @@
+﻿        @model ControlAsistenciasCursosVirtuales.Models.AlumnosIndexViewModel
+        @*
+        Esta vista recibe un ViewModel que contiene:
+        - Lista de alumnos
+        - Texto de búsqueda
+        - Mensajes del sistema
+        *@
+
+        @{
+            ViewBag.Title = "Administrar Alumnos";
+            Layout = "~/Views/Shared/_Layout.cshtml"; // Usa el layout principal
+        }
+
+        <div class="card" style="max-width:1100px;">
+            <h2 class="card-title">Administración de Alumnos</h2>
+
+            @* ================= TOOLBAR ================= *@
+            <div class="toolbar">
+
+                @* BOTÓN CREAR (redirige al Controller - acción Create) *@
+                <div class="toolbar-left">
+                    <a href="@Url.Action("Create", "Alumnos")" class="btn btn-sm">
+                        ➕ Crear Alumno
+                    </a>
+                </div>
+
+                @* BUSCADOR (envía datos al método Index del Controller) *@
+                <div class="toolbar-right search-group">
+                    @using (Html.BeginForm("Index", "Alumnos", FormMethod.Get))
+                    {
+                        @Html.TextBoxFor(m => m.Buscar, new
+                        {
+                            @class = "search",
+                            placeholder = "Buscar por nombre..."
+                        })
+
+                        <button type="submit" class="btn btn-sm">Buscar</button>
+
+                        @* Limpia filtros *@
+                        <a href="@Url.Action("Index", "Alumnos")" class="btn btn-sm btn-secondary">
+                            Limpiar
+                        </a>
+                    }
+                </div>
+
+            </div>
+
+            @* ================= MENSAJES ================= *@
+            @if (!string.IsNullOrWhiteSpace(Model.Mensaje))
+            {
+                <div class="error" style="margin-top:12px;">
+                    @Model.Mensaje
+                </div>
+            }
+
+            @* ================= TABLA ================= *@
+            <table class="table" style="margin-top:15px;">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Usuario</th>
+                        <th>Activo</th>
+                        <th style="width:180px;">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @* Verifica si hay datos *@
+                    @if (Model.Alumnos != null && Model.Alumnos.Any())
+                    {
+                        foreach (var alumno in Model.Alumnos)
+                        {
+                            <tr>
+                                <td>@alumno.Codigo</td>
+                                <td>@alumno.Nombres</td>
+                                <td>@alumno.Apellidos</td>
+                                <td>@alumno.Email</td>
+                                <td>@alumno.Telefono</td>
+                                <td>@alumno.CodigoUsuario</td>
+
+                                @* Estado del alumno *@
+                                <td>
+                                    @(alumno.Activo )
+                                </td>
+
+                                @* Botones que llaman al Controller *@
+                                <td>
+                                    <a href="@Url.Action("Edit", "Alumnos", new { id = alumno.IdEstudiante })"
+                                       class="btn btn-sm">
+                                        Editar
+                                    </a>
+
+                                    <a href="@Url.Action("Delete", "Alumnos", new { id = alumno.IdEstudiante })"
+                                       class="btn btn-sm btn-secondary">
+                                        Eliminar
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        @* Mensaje si no hay registros *@
+                        <tr>
+                            <td colspan="7" style="text-align:center;">
+                                No hay alumnos registrados.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    

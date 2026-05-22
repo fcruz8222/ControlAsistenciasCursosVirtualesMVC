@@ -1,0 +1,100 @@
+﻿@model ControlAsistenciasCursosVirtuales.Models.AlumnoViewModel
+@*
+    Vista para EDITAR un alumno existente
+*@
+
+@{
+    ViewBag.Title = "Editar Alumno";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card" style="max-width:800px;">
+    <h2 class="card-title">Editar Alumno</h2>
+
+    @using (Html.BeginForm("Edit", "Alumnos", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+
+
+        @* Campo oculto para enviar el ID *@
+        @Html.HiddenFor(m => m.IdEstudiante)
+
+        @Html.ValidationSummary(true, "", new { @class = "error" })
+
+        @* ===== CAMPOS ===== *@
+
+<div class="form-group">
+    @Html.LabelFor(m => m.Codigo)
+    @Html.TextBoxFor(m => m.Codigo, new { @class = "input", oninput = "formatoCodigo(this)" })
+    @Html.ValidationMessageFor(m => m.Codigo, "", new { @class = "error" })
+</div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Nombres)
+            @Html.TextBoxFor(m => m.Nombres, new { @class = "input" })
+            @Html.ValidationMessageFor(m => m.Nombres, "", new { @class = "error" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Apellidos)
+            @Html.TextBoxFor(m => m.Apellidos, new { @class = "input" })
+            @Html.ValidationMessageFor(m => m.Apellidos, "", new { @class = "error" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Email)
+            @Html.TextBoxFor(m => m.Email, new { @class = "input", type = "email" })
+            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "error" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.Telefono)
+            @Html.TextBoxFor(m => m.Telefono, new { @class = "input" })
+            @Html.ValidationMessageFor(m => m.Telefono, "", new { @class = "error" })
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.CodigoUsuario, "Usuario")
+            @Html.HiddenFor(m => m.CodigoUsuario)
+            <p>
+                <strong>
+                    Usuario
+                </strong>
+                @Model.CodigoUsuario
+            </p>
+            @Html.ValidationMessageFor(m => m.CodigoUsuario, "", new { @class = "error" })
+        </div>
+
+        @* No mostramos contraseña para no sobreescribir *@
+
+        <div class="form-group">
+            
+                @Html.LabelFor(m => m.Activo, "estado")
+                @Html.DropDownListFor(m => m.Activo, Model.EstadoList, "selecione", new {@class = "input"})
+                @Html.ValidationMessageFor(m => m.Activo, "", new { @class = "error" })
+            
+        </div>
+
+        @* ===== BOTONES ===== *@
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button type="submit" class="btn btn-sm">
+                    Actualizar
+                </button>
+
+                <a href="@Url.Action("Index","Alumnos")" class="btn btn-sm btn-secondary">
+                    Cancelar
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<script>function formatoCodigo(input) {
+        let valor = input.value.replace(/\D/g, '');
+        if (valor.length > 4) {
+            valor = valor.substring(0, 4) + '-' + valor.substring(4, 6);
+        }
+        input.value = valor;
+    }</script>
