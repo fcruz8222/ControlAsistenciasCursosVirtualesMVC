@@ -52,8 +52,14 @@
 
             @if (rol == "Admin" || rol == "Maestro")
             {
+                <a class="@(controller == "Alumnos" ? "active" : "")"
+                   href="@Url.Action("Index", "Alumnos")">Estudiantes</a>
+
                 <a class="@(controller == "Cursos" ? "active" : "")"
                    href="@Url.Action("Index", "Cursos")">Cursos</a>
+
+                <a class="@(controller == "CursoEstudiantes" ? "active" : "")"
+                   href="@Url.Action("Index", "CursoEstudiantes")">Asignar Cursos</a>
             }
 
             @if (rol == "Admin" || rol == "Maestro" || rol == "Estudiante")
@@ -65,14 +71,6 @@
                    href="@Url.Action("Index", "Estadisticas")">Estadísticas</a>
             }
 
-            @if (rol == "Admin" || rol == "Maestro")
-            {
-                <a class="@(controller == "Alumnos" ? "active" : "")"
-                   href="@Url.Action("Index", "Alumnos")">Estudiantes</a>
-
-                <a class="@(controller == "CursoEstudiantes" ? "active" : "")"
-                   href="@Url.Action("Index", "CursoEstudiantes")">Asignar Cursos</a>
-            }
         </nav>
     </header>
 

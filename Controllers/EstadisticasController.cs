@@ -64,19 +64,59 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
         private List<EstadisticaCursoViewModel> ObtenerEstadisticasPorCurso(int? idCurso, DateTime? inicio, DateTime? fin)
         {
             string sql = @"
-                SELECT c.IdCurso,
+                WITH Asignados AS (
+                    SELECT
+                        c.IdCurso,
+                        ce.CodigoUsuario
+                    FROM dbo.Cursos c
+                    LEFT JOIN dbo.CursoEstudiante ce
+                        ON ce.IdCurso = c.IdCurso
+                       AND ce.Status = 'ACTIVO'
+                    WHERE (@IdCurso IS NULL OR c.IdCurso = @IdCurso)
+                ),
+                TiempoPorEstudiante AS (
+                    SELECT
+                        ra.IdCurso,
+                        ra.CodigoUsuario,
+                        SUM(ISNULL(ra.DuracionMinutos, 0)) AS MinutosAcumulados,
+                        COUNT(ra.IdRegistro) AS TotalAsistencias,
+                        MAX(ra.FechaRegistro) AS UltimaAsistencia
+                    FROM dbo.RegistroAsistencia ra
+                    WHERE (@Inicio IS NULL OR ra.FechaRegistro >= @Inicio)
+                      AND (@Fin IS NULL OR ra.FechaRegistro < DATEADD(day, 1, @Fin))
+                    GROUP BY ra.IdCurso, ra.CodigoUsuario
+                )
+                SELECT
+                       c.IdCurso,
                        c.Nombre AS CursoNombre,
                        m.Nombre AS MaestroNombre,
-                       COUNT(ra.IdRegistro) AS TotalAsistencias,
-                       MAX(ra.FechaRegistro) AS UltimaAsistencia
+                       c.DuracionHoras,
+                       COUNT(DISTINCT a.CodigoUsuario) AS TotalAsignados,
+                       COUNT(DISTINCT t.CodigoUsuario) AS EstudiantesConAsistencia,
+                       ISNULL(SUM(t.TotalAsistencias), 0) AS TotalAsistencias,
+                       SUM(CASE
+                            WHEN ISNULL(t.MinutosAcumulados, 0) >= (c.DuracionHoras * 60)
+                            THEN 1 ELSE 0
+                           END) AS EstudiantesCompletaron,
+                       CAST(
+                           CASE
+                               WHEN COUNT(DISTINCT a.CodigoUsuario) = 0 THEN 0
+                               ELSE AVG(CASE
+                                   WHEN ISNULL(t.MinutosAcumulados, 0) >= (c.DuracionHoras * 60) THEN 100.0
+                                   ELSE (ISNULL(t.MinutosAcumulados, 0) * 100.0) / NULLIF((c.DuracionHoras * 60), 0)
+                               END)
+                           END AS DECIMAL(10,2)
+                       ) AS AvancePromedio,
+                       MAX(t.UltimaAsistencia) AS UltimaAsistencia
                 FROM dbo.Cursos c
                 INNER JOIN dbo.Maestros m ON m.IdMaestro = c.IdMaestro
-                LEFT JOIN dbo.RegistroAsistencia ra ON ra.IdCurso = c.IdCurso
-                    AND (@Inicio IS NULL OR ra.FechaRegistro >= @Inicio)
-                    AND (@Fin IS NULL OR ra.FechaRegistro < DATEADD(day, 1, @Fin))
+                LEFT JOIN Asignados a ON a.IdCurso = c.IdCurso
+                LEFT JOIN TiempoPorEstudiante t
+                    ON t.IdCurso = c.IdCurso
+                   AND t.CodigoUsuario = a.CodigoUsuario
                 WHERE (@IdCurso IS NULL OR c.IdCurso = @IdCurso)
-                GROUP BY c.IdCurso, c.Nombre, m.Nombre
-                ORDER BY TotalAsistencias DESC, c.Nombre;
+                GROUP BY c.IdCurso, c.Nombre, m.Nombre, c.DuracionHoras
+                ORDER BY AvancePromedio DESC, c.Nombre;
             ";
 
             var dt = Db.Query(sql,
@@ -93,7 +133,12 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                     IdCurso = Convert.ToInt32(r["IdCurso"]),
                     CursoNombre = r["CursoNombre"].ToString(),
                     MaestroNombre = r["MaestroNombre"].ToString(),
+                    HorasRequeridas = Convert.ToDecimal(r["DuracionHoras"]),
+                    TotalAsignados = Convert.ToInt32(r["TotalAsignados"]),
+                    EstudiantesConAsistencia = Convert.ToInt32(r["EstudiantesConAsistencia"]),
                     TotalAsistencias = Convert.ToInt32(r["TotalAsistencias"]),
+                    EstudiantesCompletaron = Convert.ToInt32(r["EstudiantesCompletaron"]),
+                    AvancePromedio = Convert.ToDecimal(r["AvancePromedio"]),
                     UltimaAsistencia = r["UltimaAsistencia"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(r["UltimaAsistencia"])
                 });
             }

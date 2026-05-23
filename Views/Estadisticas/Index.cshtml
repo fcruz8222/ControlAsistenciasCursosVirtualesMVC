@@ -1,22 +1,7 @@
 @model ControlAsistenciasCursosVirtuales.Models.EstadisticasIndexViewModel
 
-@{
-    ViewBag.Title = "Estadisticas";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-
-    var mayorTotal = 0;
-
-    if (Model.PorCurso != null)
-    {
-        foreach (var curso in Model.PorCurso)
-        {
-            if (curso.TotalAsistencias > mayorTotal)
-            {
-                mayorTotal = curso.TotalAsistencias;
-            }
-        }
-    }
-}
+@{ ViewBag.Title = "Estadisticas";
+                Layout = "~/Views/Shared/_Layout.cshtml"; }
 
 <div class="stats-page">
     <div class="stats-card">
@@ -30,30 +15,30 @@
         <div class="stats-filter-card">
             @using (Html.BeginForm("Index", "Estadisticas", FormMethod.Get))
             {
-    <div class="stats-filter-grid">
-        <div class="field">
-            <label>Curso</label>
-            @Html.DropDownListFor(m => m.IdCurso, Model.Cursos)
-        </div>
+<div class="stats-filter-grid">
+    <div class="field">
+        <label>Curso</label>
+        @Html.DropDownListFor(m => m.IdCurso, Model.Cursos)
+    </div>
 
-        <div class="field">
-            <label>Desde</label>
-            @Html.TextBoxFor(m => m.FechaInicio, new { type = "date" })
-        </div>
+    <div class="field">
+        <label>Desde</label>
+        @Html.TextBoxFor(m => m.FechaInicio, new { type = "date" })
+    </div>
 
-        <div class="field">
-            <label>Hasta</label>
-            @Html.TextBoxFor(m => m.FechaFin, new { type = "date" })
-        </div>
+    <div class="field">
+        <label>Hasta</label>
+        @Html.TextBoxFor(m => m.FechaFin, new { type = "date" })
+    </div>
 
-        <div class="stats-filter-actions">
-            <button type="submit" class="btn btn-sm">Filtrar</button>
+    <div class="stats-filter-actions">
+        <button type="submit" class="btn btn-sm">Filtrar</button>
 
-            <a href="@Url.Action("Index", "Estadisticas")" class="btn btn-sm btn-secondary">
-                Limpiar
-            </a>
-        </div>
-    </div>            }
+        <a href="@Url.Action("Index", "Estadisticas")" class="btn btn-sm btn-secondary">
+            Limpiar
+        </a>
+    </div>
+</div>  }
         </div>
 
         <div class="stats-grid">
@@ -81,8 +66,8 @@
 
         <div class="stats-section-heading">
             <div>
-                <h3>Asistencias por Curso</h3>
-                <p>Comparativo de registros acumulados por cada curso.</p>
+                <h3>Cumplimiento por Curso</h3>
+                <p>Avance calculado segun las horas cursadas por los estudiantes asignados.</p>
             </div>
         </div>
 
@@ -92,8 +77,10 @@
                     <tr>
                         <th>Curso</th>
                         <th>Maestro</th>
-                        <th>Total</th>
-                        <th>Avance</th>
+                        <th>Asignados</th>
+                        <th>Con asistencia</th>
+                        <th>Completaron</th>
+                        <th>Avance promedio</th>
                         <th>Ultima asistencia</th>
                     </tr>
                 </thead>
@@ -101,7 +88,8 @@
                 <tbody>
                     @foreach (var item in Model.PorCurso)
                     {
-                        var porcentaje = mayorTotal > 0 ? (item.TotalAsistencias * 100 / mayorTotal) : 0;
+                        var avance = Math.Min(100, Math.Max(0, item.AvancePromedio));
+                        var avanceCss = avance.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
 
         <tr>
             <td>
@@ -110,11 +98,20 @@
             </td>
             <td>@item.MaestroNombre</td>
             <td>
-                <span class="count-pill">@item.TotalAsistencias</span>
+                <span class="count-pill">@item.TotalAsignados</span>
             </td>
             <td>
+                <span class="count-pill">@item.EstudiantesConAsistencia</span>
+                <span class="muted-text">@item.TotalAsistencias registros</span>
+            </td>
+            <td>
+                <span class="count-pill">@item.EstudiantesCompletaron de @item.TotalAsignados</span>
+            </td>
+            <td>
+                <strong>@avance.ToString("0.##")%</strong>
+                <span class="muted-text">@item.HorasRequeridas.ToString("0.##") horas requeridas</span>
                 <div class="progress-track">
-                    <div class="progress-fill" style="width:@porcentaje%;"></div>
+                    <div class="progress-fill" style="width:@avanceCss%;"></div>
                 </div>
             </td>
             <td>
@@ -122,7 +119,8 @@
                                     ? item.UltimaAsistencia.Value.ToString("yyyy-MM-dd HH:mm")
                                     : "Sin registros")
             </td>
-        </tr>}
+        </tr>
+}
                 </tbody>
             </table>
         </div>
@@ -155,14 +153,15 @@
                 @item.NombreParticipante
                 @if (!string.IsNullOrWhiteSpace(item.Observacion))
                 {
-    <span class="muted-text">@item.Observacion</span>}
+<span class="muted-text">@item.Observacion</span>}
             </td>
             <td>@item.Correo</td>
             <td>@item.FechaRegistro.ToString("yyyy-MM-dd HH:mm")</td>
             <td>
                 <span class="ip-pill">@item.IpPublica</span>
             </td>
-        </tr>}
+        </tr>
+}
                 </tbody>
             </table>
         </div>

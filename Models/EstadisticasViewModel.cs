@@ -23,6 +23,11 @@ namespace ControlAsistenciasCursosVirtuales.Models
         public string CursoNombre { get; set; }
         public string MaestroNombre { get; set; }
         public int TotalAsistencias { get; set; }
+        public int TotalAsignados { get; set; }
+        public int EstudiantesConAsistencia { get; set; }
+        public int EstudiantesCompletaron { get; set; }
+        public decimal AvancePromedio { get; set; }
+        public decimal HorasRequeridas { get; set; }
         public DateTime? UltimaAsistencia { get; set; }
     }
 }
