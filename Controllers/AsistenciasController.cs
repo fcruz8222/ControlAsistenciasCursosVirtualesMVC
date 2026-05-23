@@ -151,21 +151,18 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
         }
 
         [HttpPost]
-        public ActionResult Salir(int id)
+        public ActionResult Salir(int id, string destino = "")
         {
             if (Session["USER"] == null)
                 return RedirectToAction("Login", "Auth");
 
-            /*Schema.EnsureCursos();
-            Schema.EnsureRegistroAsistencia();*/
-
             var dt = Db.Query(@"
-                SELECT ra.IdRegistro, ra.IdCurso, ra.CodigoUsuario, ra.FechaEntrada, ra.FechaSalida,
-                       c.DuracionHoras
-                FROM dbo.RegistroAsistencia ra
-                INNER JOIN dbo.Cursos c ON c.IdCurso = ra.IdCurso
-                WHERE ra.IdRegistro = @id
-                  AND (@SoloUsuario = 0 OR ra.CodigoUsuario = @CodigoUsuario)",
+        SELECT ra.IdRegistro, ra.IdCurso, ra.CodigoUsuario, ra.FechaEntrada, ra.FechaSalida,
+               c.DuracionHoras
+        FROM dbo.RegistroAsistencia ra
+        INNER JOIN dbo.Cursos c ON c.IdCurso = ra.IdCurso
+        WHERE ra.IdRegistro = @id
+          AND (@SoloUsuario = 0 OR ra.CodigoUsuario = @CodigoUsuario)",
                 new SqlParameter("@id", id),
                 new SqlParameter("@SoloUsuario", EsEstudiante() ? 1 : 0),
                 new SqlParameter("@CodigoUsuario", Session["USER"].ToString()));
@@ -174,37 +171,39 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                 return RedirectToAction("Index");
 
             var row = dt.Rows[0];
-            if (row["FechaSalida"] != DBNull.Value)
+
+            if (row["FechaSalida"] == DBNull.Value)
             {
-                TempData["Warning"] = "Este curso ya tiene hora de salida registrada.";
-                return RedirectToAction("Confirmacion", new { id = id });
+                DateTime entrada = row["FechaEntrada"] == DBNull.Value
+                    ? DateTime.Now
+                    : Convert.ToDateTime(row["FechaEntrada"]);
+
+                DateTime salida = DateTime.Now;
+                int duracionMinutos = Math.Max(0, Convert.ToInt32(Math.Round((salida - entrada).TotalMinutes)));
+                int minutosCurso = Convert.ToInt32(Math.Round(Convert.ToDecimal(row["DuracionHoras"]) * 60));
+                int idCurso = Convert.ToInt32(row["IdCurso"]);
+                int acumuladoAnterior = ObtenerMinutosAcumulados(row["CodigoUsuario"].ToString(), idCurso, id);
+                int restante = Math.Max(0, minutosCurso - acumuladoAnterior - duracionMinutos);
+
+                Db.Execute(@"
+            UPDATE dbo.RegistroAsistencia
+            SET FechaSalida = @FechaSalida,
+                DuracionMinutos = @DuracionMinutos,
+                TiempoRestanteMinutos = @TiempoRestanteMinutos,
+                EstadoAsistencia = 'FINALIZADO'
+            WHERE IdRegistro = @IdRegistro",
+                    new SqlParameter("@FechaSalida", salida),
+                    new SqlParameter("@DuracionMinutos", duracionMinutos),
+                    new SqlParameter("@TiempoRestanteMinutos", restante),
+                    new SqlParameter("@IdRegistro", id));
+
+                TempData["Success"] = "Salida registrada correctamente.";
             }
 
-            DateTime entrada = row["FechaEntrada"] == DBNull.Value
-                ? DateTime.Now
-                : Convert.ToDateTime(row["FechaEntrada"]);
+            if (destino == "estadisticas")
+                return RedirectToAction("Index", "Estadisticas");
 
-            DateTime salida = DateTime.Now;
-            int duracionMinutos = Math.Max(0, Convert.ToInt32(Math.Round((salida - entrada).TotalMinutes)));
-            int minutosCurso = Convert.ToInt32(Math.Round(Convert.ToDecimal(row["DuracionHoras"]) * 60));
-            int idCurso = Convert.ToInt32(row["IdCurso"]);
-            int acumuladoAnterior = ObtenerMinutosAcumulados(row["CodigoUsuario"].ToString(), idCurso, id);
-            int restante = Math.Max(0, minutosCurso - acumuladoAnterior - duracionMinutos);
-
-            Db.Execute(@"
-                UPDATE dbo.RegistroAsistencia
-                SET FechaSalida = @FechaSalida,
-                    DuracionMinutos = @DuracionMinutos,
-                    TiempoRestanteMinutos = @TiempoRestanteMinutos,
-                    EstadoAsistencia = 'FINALIZADO'
-                WHERE IdRegistro = @IdRegistro",
-                new SqlParameter("@FechaSalida", salida),
-                new SqlParameter("@DuracionMinutos", duracionMinutos),
-                new SqlParameter("@TiempoRestanteMinutos", restante),
-                new SqlParameter("@IdRegistro", id));
-
-            TempData["Success"] = "Salida registrada correctamente.";
-            return RedirectToAction("Confirmacion", new { id = id });
+            return RedirectToAction("Index", "Asistencias");
         }
 
         [HttpPost]

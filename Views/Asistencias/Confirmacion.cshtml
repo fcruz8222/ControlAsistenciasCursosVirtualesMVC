@@ -1,68 +1,82 @@
-@model ControlAsistenciasCursosVirtuales.Models.AsistenciaConfirmacionViewModel
+﻿@model ControlAsistenciasCursosVirtuales.Models.AsistenciaConfirmacionViewModel
 
 @{
     ViewBag.Title = "Asistencia Confirmada";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var fechaInicio = Model.FechaEntrada.HasValue
+        ? Model.FechaEntrada.Value.ToString("yyyy-MM-ddTHH:mm:ss")
+        : Model.FechaRegistro.ToString("yyyy-MM-ddTHH:mm:ss");
 }
 
-<div class="confirm-card">
-    <div class="confirm-icon">OK</div>
-    <h2>@(Model.EstadoAsistencia == "FINALIZADO" ? "Curso finalizado" : "Curso iniciado")</h2>
-    <p>
-        @(Model.EstadoAsistencia == "FINALIZADO"
-            ? "La salida fue registrada correctamente."
-            : "La hora de entrada fue registrada correctamente.")
-    </p>
+<div class="confirm-card beautiful-confirm">
+
+    <div class="confirm-top">
+        <div class="confirm-icon">✓</div>
+        <div>
+            <h2>@(Model.EstadoAsistencia == "FINALIZADO" ? "Curso finalizado" : "Curso iniciado")</h2>
+            <p>
+                @(Model.EstadoAsistencia == "FINALIZADO"
+                    ? "La salida fue registrada correctamente."
+                    : "La hora de entrada fue registrada correctamente.")
+            </p>
+        </div>
+    </div>
+
+    @if (Model.EstadoAsistencia != "FINALIZADO")
+    {
+        <div class="timer-box">
+            <span>Tiempo transcurrido</span>
+            <strong id="timer">00:00:00</strong>
+        </div>
+    }
 
     <div class="confirm-grid">
+        <div><span>Curso</span><strong>@Model.CursoNombre</strong></div>
+
         <div>
-            <span>Curso</span>
-            <strong>@Model.CursoNombre</strong>
+            <span>Fecha límite</span>
+            <strong>@(Model.CursoFechaFin.HasValue ? Model.CursoFechaFin.Value.ToString("yyyy-MM-dd") : "No definida")</strong>
         </div>
-        <div>
-            <span>Fecha limite</span>
-            <strong>
-                @(Model.CursoFechaFin.HasValue
-                    ? Model.CursoFechaFin.Value.ToString("yyyy-MM-dd")
-                    : "No definida")
-            </strong>
-        </div>
-        <div>
-            <span>Participante</span>
-            <strong>@Model.NombreParticipante</strong>
-        </div>
+
+        <div><span>Participante</span><strong>@Model.NombreParticipante</strong></div>
+
         <div>
             <span>Hora entrada</span>
             <strong>@(Model.FechaEntrada.HasValue ? Model.FechaEntrada.Value.ToString("yyyy-MM-dd HH:mm") : Model.FechaRegistro.ToString("yyyy-MM-dd HH:mm"))</strong>
         </div>
+
         <div>
             <span>Hora salida</span>
             <strong>@(Model.FechaSalida.HasValue ? Model.FechaSalida.Value.ToString("yyyy-MM-dd HH:mm") : "En curso")</strong>
         </div>
+
         <div>
-            <span>Tiempo cursado en esta sesion</span>
+            <span>Tiempo cursado</span>
             <strong>@(Model.DuracionMinutos.HasValue ? Model.DuracionMinutos + " min" : "En curso")</strong>
         </div>
+
         <div>
-            <span>Tiempo restante del curso</span>
+            <span>Tiempo restante</span>
             <strong>@(Model.TiempoRestanteMinutos.HasValue ? Model.TiempoRestanteMinutos + " min" : "Pendiente")</strong>
         </div>
+
+        <div><span>IP servidor</span><strong>@Model.IpRegistro</strong></div>
+
         <div>
-            <span>IP servidor</span>
-            <strong>@Model.IpRegistro</strong>
-        </div>
-        <div>
-            <span>IP publica</span>
+            <span>IP pública</span>
             <strong>@(string.IsNullOrWhiteSpace(Model.IpPublica) ? "No disponible" : Model.IpPublica)</strong>
         </div>
+
         <div>
-            <span>Ubicacion</span>
+            <span>Ubicación</span>
             <strong>
                 @(Model.Latitud.HasValue && Model.Longitud.HasValue
                     ? Model.Latitud + ", " + Model.Longitud
                     : "No disponible")
             </strong>
         </div>
+
         <div>
             <span>Correo</span>
             <strong>@(string.IsNullOrWhiteSpace(Model.Correo) ? "No indicado" : Model.Correo)</strong>
@@ -72,7 +86,7 @@
     @if (!string.IsNullOrWhiteSpace(Model.Observacion))
     {
         <div class="confirm-note">
-            <span>Observacion</span>
+            <span>Observación</span>
             <p>@Model.Observacion</p>
         </div>
     }
@@ -80,13 +94,45 @@
     <div class="modal-footer">
         @if (Model.EstadoAsistencia != "FINALIZADO")
         {
-            using (Html.BeginForm("Salir", "Asistencias", FormMethod.Post, new { style = "display:inline;" }))
+            using (Html.BeginForm("Salir", "Asistencias", FormMethod.Post))
             {
                 <input type="hidden" name="id" value="@Model.IdRegistro" />
-                <button type="submit" class="btn btn-sm">Registrar salida</button>
+                <input type="hidden" name="destino" value="asistencias" />
+                <button type="submit" class="btn btn-sm">Volver a asistencias</button>
+            }
+
+            using (Html.BeginForm("Salir", "Asistencias", FormMethod.Post))
+            {
+                <input type="hidden" name="id" value="@Model.IdRegistro" />
+                <input type="hidden" name="destino" value="estadisticas" />
+                <button type="submit" class="btn btn-sm btn-secondary">Ver estadísticas</button>
             }
         }
-        <a href="@Url.Action("Index", "Asistencias")" class="btn btn-sm">Volver a asistencias</a>
-        <a href="@Url.Action("Index", "Estadisticas")" class="btn btn-sm btn-secondary">Ver estadisticas</a>
+        else
+        {
+            <a href="@Url.Action("Index", "Asistencias")" class="btn btn-sm">Volver a asistencias</a>
+            <a href="@Url.Action("Index", "Estadisticas")" class="btn btn-sm btn-secondary">Ver estadísticas</a>
+        }
     </div>
 </div>
+
+<script>
+    const inicio = new Date('@fechaInicio');
+
+    function actualizarTimer() {
+        const ahora = new Date();
+        let diff = Math.floor((ahora - inicio) / 1000);
+
+        const horas = String(Math.floor(diff / 3600)).padStart(2, '0');
+        diff %= 3600;
+
+        const minutos = String(Math.floor(diff / 60)).padStart(2, '0');
+        const segundos = String(diff % 60).padStart(2, '0');
+
+        const timer = document.getElementById('timer');
+        if (timer) timer.innerText = `${horas}:${minutos}:${segundos}`;
+    }
+
+    actualizarTimer();
+    setInterval(actualizarTimer, 1000);
+</script>
