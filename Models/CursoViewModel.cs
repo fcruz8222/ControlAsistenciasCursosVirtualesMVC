@@ -30,6 +30,9 @@ namespace ControlAsistenciasCursosVirtuales.Models
         [Required(ErrorMessage = "Ingrese hora")]
         public string Hora { get; set; }
 
+        [Required(ErrorMessage = "Ingrese fecha de finalización")]
+        public string FechaFin { get; set; }
+
         [Required(ErrorMessage = "Ingrese duración")]
         public string DuracionHoras { get; set; }
 
@@ -46,6 +49,7 @@ namespace ControlAsistenciasCursosVirtuales.Models
         public string MaestroNombre { get; set; }
         public string Status { get; set; }
         public DateTime FechaHora { get; set; }
+        public DateTime FechaFin { get; set; }
         public decimal DuracionHoras { get; set; }
     }
 

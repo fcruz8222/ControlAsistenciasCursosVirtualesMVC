@@ -16,18 +16,18 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                 return RedirectToAction("Login", "Auth");
 
             // Obtener ID del alumno logueado
-            int idAlumno = Convert.ToInt32(Session["IdAlumno"]);
+            string idAlumno = Convert.ToString(Session["USER"]);
 
             var vm = new IniciarClaseViewModel
             {
-                IdAlumno = idAlumno,
+                CodigoUsuario = idAlumno,
                 Cursos = ObtenerCursosAlumno(idAlumno)
             };
 
             return View(vm);
         }
 
-        private List<IniciarClaseListaViewModel> ObtenerCursosAlumno(int idAlumno)
+        private List<IniciarClaseListaViewModel> ObtenerCursosAlumno(string idAlumno)
         {
             string sql = @"
                 SELECT 
@@ -41,9 +41,9 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                 FROM dbo.Cursos c
                 INNER JOIN dbo.Maestros m 
                     ON m.IdMaestro = c.IdMaestro
-                INNER JOIN dbo.Inscripciones ac 
+                INNER JOIN dbo.CursoEstudiante ac 
                     ON ac.IdCurso = c.IdCurso
-                WHERE ac.IdEstudiante = @IdAlumno
+                WHERE ac.CodigoUsuario = @IdAlumno
                 AND c.Status = 'ACTIVO'
                 ORDER BY c.FechaHora DESC;
             ";

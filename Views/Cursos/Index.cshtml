@@ -45,6 +45,7 @@
                     <th>Nombre</th>
                     <th>Maestro</th>
                     <th>Fecha/Hora</th>
+                    <th>Finalización</th>
                     <th>Duración (h)</th>
                     <th>Status</th>
                     <th>Acciones</th>
@@ -54,43 +55,44 @@
             <tbody>
                 @foreach (var item in Model.Cursos)
                 {
-                    <tr>
-                        <td>@item.IdCurso</td>
-                        <td>@item.TipoCurso</td>
-                        <td>@item.Nombre</td>
-                        <td>@item.MaestroNombre</td>
-                        <td>@item.FechaHora.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@item.DuracionHoras</td>
-                        <td>
-                            <span class="badge @(item.Status == "ACTIVO" ? "activo" : "inactivo")">
-                                @item.Status
-                            </span>
-                        </td>
-                        <td>
-                            <a class="btn btn-sm btn-primary"
-                               href="@Url.Action("Editar", "Cursos", new { id = item.IdCurso, buscar = Model.Buscar })">
-                                Editar
-                            </a>
+                <tr>
+                    <td>@item.IdCurso</td>
+                    <td>@item.TipoCurso</td>
+                    <td>@item.Nombre</td>
+                    <td>@item.MaestroNombre</td>
+                    <td>@item.FechaHora.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@item.FechaFin.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@item.DuracionHoras</td>
+                    <td>
+                        <span class="badge @(item.Status == "ACTIVO" ? "activo" : "inactivo")">
+                            @item.Status
+                        </span>
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-primary"
+                           href="@Url.Action("Editar", "Cursos", new { id = item.IdCurso, buscar = Model.Buscar })">
+                            Editar
+                        </a>
 
-                                @Html.Hidden("id", item.IdCurso)
-                                @Html.Hidden("buscar", Model.Buscar)
+                        @Html.Hidden("id", item.IdCurso)
+                        @Html.Hidden("buscar", Model.Buscar)
 
-                                <button type="button"
-                                        class="btn btn-sm btn-secondary"
-                                        onclick="confirmDelete('@item.IdCurso')">
-                                    Borrar
-                                </button>
+                        <button type="button"
+                                class="btn btn-sm btn-secondary"
+                                onclick="confirmDelete('@item.IdCurso')">
+                            Borrar
+                        </button>
 
-                                <form id="formDelete_@item.IdCurso"
-                                      method="post"
-                                      action="@Url.Action("Borrar", "Cursos")"
-                                      style="display:none;">
-                                    <input type="hidden" name="id" value="@item.IdCurso" />
-                                    <input type="hidden" name="buscar" value="@Model.Buscar" />
-                                </form>
-                            
-                        </td>
-                    </tr>
+                        <form id="formDelete_@item.IdCurso"
+                              method="post"
+                              action="@Url.Action("Borrar", "Cursos")"
+                              style="display:none;">
+                            <input type="hidden" name="id" value="@item.IdCurso" />
+                            <input type="hidden" name="buscar" value="@Model.Buscar" />
+                        </form>
+
+                    </td>
+                </tr>
                 }
             </tbody>
         </table>
@@ -155,6 +157,12 @@
                 <label>Hora</label>
                 @Html.TextBoxFor(m => m.Curso.Hora, new { type = "time" })
                 @Html.ValidationMessageFor(m => m.Curso.Hora, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Fecha de Finalización</label>
+                @Html.TextBoxFor(m => m.Curso.FechaFin, new { type = "date" })
+                @Html.ValidationMessageFor(m => m.Curso.FechaFin, "", new { @class = "error" })
             </div>
 
             <div class="field">

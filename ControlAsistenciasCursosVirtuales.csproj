@@ -120,9 +120,13 @@
     <Compile Include="App_Start\BundleConfig.cs" />
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Controllers\AlumnosController.cs" />
+    <Compile Include="Controllers\AsistenciasController.cs" />
     <Compile Include="Controllers\AuthController.cs" />
     <Compile Include="Controllers\ClaseController.cs" />
+    <Compile Include="Controllers\CursoEstudiantesController.cs" />
     <Compile Include="Controllers\CursosController.cs" />
+    <Compile Include="Controllers\EstadisticasController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MaestrosController.cs" />
     <Compile Include="Controllers\UsuariosController.cs" />
@@ -131,8 +135,12 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\Db.cs" />
+    <Compile Include="Models\AlumnoViewModel.cs" />
+    <Compile Include="Models\AsistenciaViewModel.cs" />
     <Compile Include="Models\ClaseViewModel.cs" />
+    <Compile Include="Models\CursoEstudianteViewModel.cs" />
     <Compile Include="Models\CursoViewModel.cs" />
+    <Compile Include="Models\EstadisticasViewModel.cs" />
     <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\MaestroViewModel.cs" />
     <Compile Include="Models\UsuarioViewModel.cs" />
@@ -180,6 +188,14 @@
     <Content Include="Views\Maestros\Index.cshtml" />
     <Content Include="Views\Home\SinAcceso.cshtml" />
     <Content Include="Views\Clase\Index.cshtml" />
+    <Content Include="Views\Alumnos\Create.cshtml" />
+    <Content Include="Views\Alumnos\Delete.cshtml" />
+    <Content Include="Views\Alumnos\Edit.cshtml" />
+    <Content Include="Views\Alumnos\Index.cshtml" />
+    <Content Include="Views\Asistencias\Confirmacion.cshtml" />
+    <Content Include="Views\Asistencias\Index.cshtml" />
+    <Content Include="Views\CursoEstudiantes\Index.cshtml" />
+    <Content Include="Views\Estadisticas\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

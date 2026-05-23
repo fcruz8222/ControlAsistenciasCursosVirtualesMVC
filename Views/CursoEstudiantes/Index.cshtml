@@ -1,0 +1,320 @@
+@using System.Linq
+@model ControlAsistenciasCursosVirtuales.Models.CursoEstudianteIndexViewModel
+
+@{
+    ViewBag.Title = "Asignar Cursos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card" style="max-width:1100px;">
+    <h2 class="card-title">Asignacion de Cursos a Estudiantes</h2>
+
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <button type="button" class="btn btn-sm" onclick="abrirAsignacionModalNueva()">
+                + Asignar Curso
+            </button>
+        </div>
+
+        <div class="toolbar-rigth search-group">
+            @using (Html.BeginForm("Index", "CursoEstudiantes", FormMethod.Get))
+            {
+                @Html.TextBoxFor(m => m.Buscar, new
+                {
+                    @class = "search",
+                    placeholder = "Buscar curso o estudiante..."
+                })
+
+                <button type="submit" class="btn btn-sm">Buscar</button>
+
+                <a href="@Url.Action("Index", "CursoEstudiantes")"
+                   class="btn btn-sm btn-secondary">
+                    Limpiar
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Curso</th>
+                    <th>Estudiante</th>
+                    <th>Fecha asignacion</th>
+                    <th>Status</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model.Asignaciones)
+                {
+                    <tr>
+                        <td>@item.IdCursoEstudiante</td>
+
+                        <td>
+                            <strong>@item.CursoNombre</strong>
+                            <span class="muted-text">
+                                Curso ID @item.IdCurso
+                            </span>
+                        </td>
+
+                        <td>
+                            @item.NombreUsuario
+                            <span class="muted-text">
+                                @item.CodigoUsuario
+                            </span>
+                        </td>
+
+                        <td>
+                            @item.FechaAsignacion.ToString("yyyy-MM-dd HH:mm")
+                        </td>
+
+                        <td>
+                            <span class="badge @(item.Status == "ACTIVO" ? "activo" : "inactivo")">
+                                @item.Status
+                            </span>
+                        </td>
+
+                        <td>
+                            <a class="btn btn-sm btn-primary"
+                               href="@Url.Action("Editar", "CursoEstudiantes",
+                               new
+                               {
+                                   id = item.IdCursoEstudiante,
+                                   buscar = Model.Buscar
+                               })">
+                                Editar
+                            </a>
+
+                            <button type="button"
+                                    class="btn btn-sm btn-secondary"
+                                    onclick="confirmDeleteAsignacion('@item.IdCursoEstudiante')">
+                                Desactivar
+                            </button>
+
+                            <form id="formDeleteAsignacion_@item.IdCursoEstudiante"
+                                  method="post"
+                                  action="@Url.Action("Borrar", "CursoEstudiantes")"
+                                  style="display:none;">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@item.IdCursoEstudiante" />
+
+                                <input type="hidden"
+                                       name="buscar"
+                                       value="@Model.Buscar" />
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div id="asignacionModal" class="modal-overlay">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <span class="modal-title">
+                @(Model.Asignacion.IdCursoEstudiante.HasValue
+                    ? "Editar Asignacion"
+                    : "Asignar Curso")
+            </span>
+
+            <span class="modal-close"
+                  onclick="cerrarAsignacionModal()">
+                x
+            </span>
+        </div>
+
+        @using (Html.BeginForm("Guardar", "CursoEstudiantes", FormMethod.Post))
+        {
+            @Html.HiddenFor(m => m.Buscar)
+            @Html.HiddenFor(m => m.Asignacion.IdCursoEstudiante)
+
+            @Html.ValidationSummary(true, "", new { @class = "error" })
+
+            <div class="field">
+                <label>Curso</label>
+
+                @Html.DropDownListFor(
+                    m => m.Asignacion.IdCurso,
+                    Model.Asignacion.Cursos,
+                    new { @class = "input-select" }
+                )
+
+                @Html.ValidationMessageFor(
+                    m => m.Asignacion.IdCurso,
+                    "",
+                    new { @class = "error" }
+                )
+            </div>
+
+            <div class="field">
+
+                <label>
+                    @(Model.Asignacion.IdCursoEstudiante.HasValue
+                        ? "Estudiante"
+                        : "Estudiantes")
+                </label>
+
+                @if (Model.Asignacion.IdCursoEstudiante.HasValue)
+                {
+                    @Html.DropDownListFor(
+                        m => m.Asignacion.CodigoUsuario,
+                        Model.Asignacion.Estudiantes,
+                        new { @class = "input-select" }
+                    )
+
+                    @Html.ValidationMessageFor(
+                        m => m.Asignacion.CodigoUsuario,
+                        "",
+                        new { @class = "error" }
+                    )
+                }
+                else
+                {
+                    <div class="multi-select-box">
+
+                        @Html.ListBoxFor(
+                            m => m.Asignacion.CodigosUsuarios,
+                            Model.Asignacion.Estudiantes.Where(x => x.Value != ""),
+                            new
+                            {
+                                @class = "multi-select",
+                                size = "6"
+                            }
+                        )
+
+                        <small class="muted-text">
+                            Manten presionada la tecla CTRL para seleccionar varios estudiantes.
+                        </small>
+
+                    </div>
+                }
+            </div>
+
+            <div class="field">
+                <label>Status</label>
+
+                @Html.DropDownListFor(
+                    m => m.Asignacion.Status,
+                    Model.Asignacion.StatusList,
+                    new { @class = "input-select" }
+                )
+
+                @Html.ValidationMessageFor(
+                    m => m.Asignacion.Status,
+                    "",
+                    new { @class = "error" }
+                )
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-sm">
+                    Guardar
+                </button>
+
+                <button type="button"
+                        class="btn btn-sm btn-secondary"
+                        onclick="cerrarAsignacionModal()">
+                    Cancelar
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+
+    .input-select,
+    select.multi-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #c7c7c7;
+        border-radius: 8px;
+        font-size: 16px;
+        background: #fff;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+    select.multi-select {
+        height: 160px;
+        overflow-y: auto;
+    }
+
+        select.multi-select option {
+            padding: 8px;
+        }
+
+    .multi-select-box {
+        width: 100%;
+    }
+
+    .muted-text {
+        color: #6b7280;
+        font-size: 13px;
+        display: block;
+        margin-top: 3px;
+    }
+</style>
+
+<script>
+
+    function abrirAsignacionModal() {
+        document.getElementById("asignacionModal").style.display = "flex";
+    }
+
+    function cerrarAsignacionModal() {
+        document.getElementById("asignacionModal").style.display = "none";
+    }
+
+    function abrirAsignacionModalNueva() {
+        abrirAsignacionModal();
+    }
+
+    function confirmDeleteAsignacion(id) {
+
+        Swal.fire({
+            title: '¿Desactivar asignacion?',
+            text: 'El estudiante ya no verá este curso como asignado.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Si, desactivar',
+            cancelButtonText: 'Cancelar'
+
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                var form = document.getElementById('formDeleteAsignacion_' + id);
+
+                if (form) {
+                    form.submit();
+                }
+                else {
+                    Swal.fire(
+                        'Error',
+                        'No se encontró el formulario.',
+                        'error'
+                    );
+                }
+            }
+        });
+    }
+
+    @if (ViewBag.AbrirModal == true)
+    {
+        <text>
+            abrirAsignacionModal();
+        </text>
+    }
+
+</script>

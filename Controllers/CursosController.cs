@@ -71,6 +71,20 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                 return View("Index", vm);
             }
 
+            DateTime fechaFin;
+            if (!DateTime.TryParseExact(
+                vm.Curso.FechaFin,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out fechaFin))
+            {
+                ModelState.AddModelError("", "Fecha de finalización inválida.");
+                vm.Cursos = ObtenerCursos(vm.Buscar);
+                ViewBag.AbrirModal = true;
+                return View("Index", vm);
+            }
+
             decimal duracion;
             if (!decimal.TryParse(vm.Curso.DuracionHoras, NumberStyles.Any, CultureInfo.InvariantCulture, out duracion) &&
                 !decimal.TryParse(vm.Curso.DuracionHoras, NumberStyles.Any, CultureInfo.CurrentCulture, out duracion))
@@ -81,12 +95,22 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                 return View("Index", vm);
             }
 
-            if (vm.Curso.IdCurso.HasValue)
+                fechaFin = fechaFin.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+
+                if (fechaFin < fechaHora)
+                {
+                    ModelState.AddModelError("", "La fecha de finalización debe ser mayor o igual a la fecha de inicio.");
+                    vm.Cursos = ObtenerCursos(vm.Buscar);
+                    ViewBag.AbrirModal = true;
+                    return View("Index", vm);
+                }
+
+                if (vm.Curso.IdCurso.HasValue)
             {
                 string sql = @"
                     UPDATE dbo.Cursos
                     SET TipoCurso=@Tipo, Nombre=@Nombre, Descripcion=@Desc, IdMaestro=@IdMaestro,
-                        Status=@Status, FechaHora=@FechaHora, DuracionHoras=@Dur
+                        Status=@Status, FechaHora=@FechaHora, FechaFin=@FechaFin, DuracionHoras=@Dur
                     WHERE IdCurso=@IdCurso;
                 ";
 
@@ -97,6 +121,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                     new SqlParameter("@IdMaestro", vm.Curso.IdMaestro.Value),
                     new SqlParameter("@Status", vm.Curso.Status),
                     new SqlParameter("@FechaHora", fechaHora),
+                    new SqlParameter("@FechaFin", fechaFin),
                     new SqlParameter("@Dur", duracion),
                     new SqlParameter("@IdCurso", vm.Curso.IdCurso.Value)
                 );
@@ -113,9 +138,9 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
             {
                 string sql = @"
                     INSERT INTO dbo.Cursos 
-                    (TipoCurso, Nombre, Descripcion, IdMaestro, Status, FechaHora, DuracionHoras)
+                    (TipoCurso, Nombre, Descripcion, IdMaestro, Status, FechaHora, FechaFin, DuracionHoras)
                     VALUES 
-                    (@Tipo, @Nombre, @Desc, @IdMaestro, @Status, @FechaHora, @Dur);
+                    (@Tipo, @Nombre, @Desc, @IdMaestro, @Status, @FechaHora, @FechaFin, @Dur);
                 ";
 
                 Db.Execute(sql,
@@ -125,6 +150,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                     new SqlParameter("@IdMaestro", vm.Curso.IdMaestro.Value),
                     new SqlParameter("@Status", vm.Curso.Status),
                     new SqlParameter("@FechaHora", fechaHora),
+                    new SqlParameter("@FechaFin", fechaFin),
                     new SqlParameter("@Dur", duracion)
                 );
 
@@ -202,7 +228,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                     string sql = @"
                 SELECT c.IdCurso, c.TipoCurso, c.Nombre,
                        m.Nombre AS MaestroNombre,
-                       c.Status, c.FechaHora, c.DuracionHoras
+                       c.Status, c.FechaHora, c.FechaFin, c.DuracionHoras
                 FROM dbo.Cursos c
                 INNER JOIN dbo.Maestros m ON m.IdMaestro = c.IdMaestro
                 WHERE (@filtro='' OR c.Nombre LIKE '%' + @filtro + '%')
@@ -220,6 +246,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                     MaestroNombre = r["MaestroNombre"].ToString(),
                     Status = r["Status"].ToString(),
                     FechaHora = Convert.ToDateTime(r["FechaHora"]),
+                    FechaFin = Convert.ToDateTime(r["FechaFin"]),
                     DuracionHoras = Convert.ToDecimal(r["DuracionHoras"])
                 })
                 .ToList();
@@ -239,6 +266,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
 
             var r = dt.Rows[0];
             DateTime fh = Convert.ToDateTime(r["FechaHora"]);
+            DateTime ff = Convert.ToDateTime(r["FechaFin"]);
 
             curso.IdCurso = id;
             curso.TipoCurso = r["TipoCurso"].ToString();
@@ -248,6 +276,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
             curso.IdMaestro = Convert.ToInt32(r["IdMaestro"]);
             curso.Fecha = fh.ToString("yyyy-MM-dd");
             curso.Hora = fh.ToString("HH:mm");
+            curso.FechaFin = ff.ToString("yyyy-MM-dd");
             curso.DuracionHoras = Convert.ToDecimal(r["DuracionHoras"]).ToString(CultureInfo.InvariantCulture);
 
             CargarCombos(curso);

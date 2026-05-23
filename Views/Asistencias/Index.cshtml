@@ -1,0 +1,297 @@
+@model ControlAsistenciasCursosVirtuales.Models.AsistenciasIndexViewModel
+
+@{
+    ViewBag.Title = "Registrar Asistencia";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card" style="max-width:1150px;">
+    <h2 class="card-title">Registro de Asistencia</h2>
+
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <button type="button" class="btn btn-sm" onclick="abrirAsistenciaModalNueva()">
+                + Iniciar Curso
+            </button>
+        </div>
+
+        <div class="toolbar-rigth search-group">
+            @using (Html.BeginForm("Index", "Asistencias", FormMethod.Get))
+            {
+                @Html.DropDownListFor(m => m.IdCursoFiltro, Model.CursosFiltro, new { @class = "search-input" })
+                @Html.TextBoxFor(m => m.Buscar, new { @class = "search", placeholder = "Buscar participante, correo o curso..." })
+
+                <button type="submit" class="btn btn-sm">Buscar</button>
+
+                <a href="@Url.Action("Index", "Asistencias")" class="btn btn-sm btn-secondary">
+                    Limpiar
+                </a>
+            }
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Curso</th>
+                    <th>Fecha limite</th>
+                    <th>Participante</th>
+                    <th>Correo</th>
+                    <th>Entrada / Salida</th>
+                    <th>Tiempo</th>
+                    <th>IP</th>
+                    <th>Ubicacion</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model.Asistencias)
+                {
+                    <tr>
+                        <td>@item.IdRegistro</td>
+                        <td><strong>@item.CursoNombre</strong></td>
+                        <td>
+                            @(item.CursoFechaFin.HasValue
+                                ? item.CursoFechaFin.Value.ToString("yyyy-MM-dd")
+                                : "No definida")
+                        </td>
+                        <td>
+                            @item.NombreParticipante
+                            @if (!string.IsNullOrWhiteSpace(item.Observacion))
+                            {
+                                <span class="muted-text">@item.Observacion</span>
+                            }
+                        </td>
+                        <td>@item.Correo</td>
+                        <td>
+                            <strong>@(item.FechaEntrada.HasValue ? item.FechaEntrada.Value.ToString("yyyy-MM-dd HH:mm") : item.FechaRegistro.ToString("yyyy-MM-dd HH:mm"))</strong>
+                            <span class="muted-text">
+                                @(item.FechaSalida.HasValue ? item.FechaSalida.Value.ToString("yyyy-MM-dd HH:mm") : "En curso")
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge @(item.EstadoAsistencia == "FINALIZADO" ? "activo" : "inactivo")">
+                                @(item.EstadoAsistencia == "FINALIZADO" ? "FINALIZADO" : "EN CURSO")
+                            </span>
+                            @if (item.DuracionMinutos.HasValue)
+                            {
+                                <span class="muted-text">@item.DuracionMinutos min cursados</span>
+                            }
+                            @if (item.TiempoRestanteMinutos.HasValue)
+                            {
+                                <span class="muted-text">@item.TiempoRestanteMinutos min restantes</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="ip-pill">@item.IpRegistro</span>
+                            @if (!string.IsNullOrWhiteSpace(item.IpPublica))
+                            {
+                                <span class="muted-text">Publica: @item.IpPublica</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.Latitud.HasValue && item.Longitud.HasValue)
+                            {
+                                <span class="count-pill">Capturada</span>
+                                <span class="muted-text">@item.Latitud, @item.Longitud</span>
+                            }
+                            else
+                            {
+                                <span class="badge inactivo">No disponible</span>
+                            }
+                        </td>
+                        <td>
+                            @if (item.EstadoAsistencia != "FINALIZADO")
+                            {
+                                using (Html.BeginForm("Salir", "Asistencias", FormMethod.Post, new { style = "display:inline;" }))
+                                {
+                                    <input type="hidden" name="id" value="@item.IdRegistro" />
+                                    <button type="submit" class="btn btn-sm">Salir</button>
+                                }
+                            }
+
+                            <button type="button"
+                                    class="btn btn-sm btn-secondary"
+                                    onclick="confirmDeleteAsistencia('@item.IdRegistro')">
+                                Borrar
+                            </button>
+
+                            <form id="formDeleteAsistencia_@item.IdRegistro"
+                                  method="post"
+                                  action="@Url.Action("Borrar", "Asistencias")"
+                                  style="display:none;">
+                                <input type="hidden" name="id" value="@item.IdRegistro" />
+                                <input type="hidden" name="buscar" value="@Model.Buscar" />
+                                <input type="hidden" name="idCursoFiltro" value="@Model.IdCursoFiltro" />
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="asistenciaModal" class="modal-overlay">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <span class="modal-title">Registrar Asistencia</span>
+            <span class="modal-close" onclick="cerrarAsistenciaModal()">x</span>
+        </div>
+
+        @using (Html.BeginForm("Guardar", "Asistencias", FormMethod.Post, new { id = "formAsistencia" }))
+        {
+            @Html.HiddenFor(m => m.Buscar)
+            @Html.HiddenFor(m => m.IdCursoFiltro)
+            @Html.HiddenFor(m => m.Asistencia.Latitud, new { id = "Latitud" })
+            @Html.HiddenFor(m => m.Asistencia.Longitud, new { id = "Longitud" })
+            @Html.HiddenFor(m => m.Asistencia.UbicacionEstado, new { id = "UbicacionEstado" })
+            @Html.HiddenFor(m => m.Asistencia.IpPublica, new { id = "IpPublica" })
+
+            @Html.ValidationSummary(true, "", new { @class = "error" })
+
+            <div class="field">
+                <label>Curso</label>
+                @Html.DropDownListFor(m => m.Asistencia.IdCurso, Model.Asistencia.Cursos)
+                @Html.ValidationMessageFor(m => m.Asistencia.IdCurso, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Participante</label>
+                @Html.TextBoxFor(m => m.Asistencia.NombreParticipante)
+                @Html.ValidationMessageFor(m => m.Asistencia.NombreParticipante, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Correo</label>
+                @Html.TextBoxFor(m => m.Asistencia.Correo, new { type = "email" })
+                @Html.ValidationMessageFor(m => m.Asistencia.Correo, "", new { @class = "error" })
+            </div>
+
+            <div class="field">
+                <label>Ubicacion</label>
+                <div class="location-box">
+                    <span id="ubicacionTexto">Pendiente de capturar</span>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="capturarUbicacion()">
+                        Capturar ubicacion
+                    </button>
+                </div>
+                <small class="muted-inline" id="ipPublicaTexto">IP publica pendiente de capturar.</small>
+            </div>
+
+            <div class="field">
+                <label>Observacion</label>
+                @Html.TextAreaFor(m => m.Asistencia.Observacion, 3, 20, null)
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-sm">Iniciar curso</button>
+                <button type="button" class="btn btn-sm btn-secondary" onclick="cerrarAsistenciaModal()">Cancelar</button>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function abrirAsistenciaModal() {
+        document.getElementById("asistenciaModal").style.display = "flex";
+        capturarUbicacion();
+        capturarIpPublica();
+    }
+
+    function cerrarAsistenciaModal() {
+        document.getElementById("asistenciaModal").style.display = "none";
+    }
+
+    function abrirAsistenciaModalNueva() {
+        abrirAsistenciaModal();
+    }
+
+    function capturarUbicacion() {
+        var texto = document.getElementById("ubicacionTexto");
+        var latitud = document.getElementById("Latitud");
+        var longitud = document.getElementById("Longitud");
+        var estado = document.getElementById("UbicacionEstado");
+
+        if (!navigator.geolocation) {
+            texto.innerText = "Geolocalizacion no disponible en este navegador.";
+            estado.value = "NO_DISPONIBLE";
+            return;
+        }
+
+        texto.innerText = "Solicitando ubicacion...";
+
+        navigator.geolocation.getCurrentPosition(function (position) {
+            latitud.value = position.coords.latitude.toFixed(6);
+            longitud.value = position.coords.longitude.toFixed(6);
+            estado.value = "CAPTURADA";
+            texto.innerText = "Ubicacion capturada: " + latitud.value + ", " + longitud.value;
+        }, function () {
+            latitud.value = "";
+            longitud.value = "";
+            estado.value = "DENEGADA";
+            texto.innerText = "No se pudo capturar la ubicacion. Puede guardar solo con IP.";
+        }, {
+            enableHighAccuracy: true,
+            timeout: 8000,
+            maximumAge: 0
+        });
+    }
+
+    function capturarIpPublica() {
+        var input = document.getElementById("IpPublica");
+        var texto = document.getElementById("ipPublicaTexto");
+
+        if (!window.fetch) {
+            texto.innerText = "No se pudo capturar IP publica. Se usara la IP del servidor.";
+            return;
+        }
+
+        texto.innerText = "Solicitando IP publica...";
+
+        fetch("https://api.ipify.org?format=json")
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                input.value = data.ip || "";
+                texto.innerText = input.value
+                    ? "IP publica capturada: " + input.value
+                    : "No se pudo capturar IP publica. Se usara la IP del servidor.";
+            })
+            .catch(function () {
+                input.value = "";
+                texto.innerText = "No se pudo capturar IP publica. Se usara la IP del servidor.";
+            });
+    }
+
+    function confirmDeleteAsistencia(id) {
+        Swal.fire({
+            title: '¿Estas seguro?',
+            text: 'Se eliminara este registro de asistencia.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Si, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var form = document.getElementById('formDeleteAsistencia_' + id);
+
+                if (form) {
+                    form.submit();
+                } else {
+                    Swal.fire('Error', 'No se encontro el formulario para eliminar.', 'error');
+                }
+            }
+        });
+    }
+
+    @if (ViewBag.AbrirModal == true)
+    {
+        <text>
+            abrirAsistenciaModal();
+        </text>
+    }
+</script>

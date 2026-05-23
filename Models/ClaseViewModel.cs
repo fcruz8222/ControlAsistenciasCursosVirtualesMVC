@@ -5,7 +5,7 @@ namespace ControlAsistenciasCursosVirtuales.Models
 {
     public class IniciarClaseViewModel
     {
-        public int IdAlumno { get; set; }
+        public string CodigoUsuario { get; set; }
 
         public string NombreAlumno { get; set; }
 

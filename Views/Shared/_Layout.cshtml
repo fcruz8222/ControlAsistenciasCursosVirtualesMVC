@@ -1,98 +1,124 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-    <title>Control de Asistencia - Cursos Virtuales</title>
+    <title>@ViewBag.Title - Control de Asistencia</title>
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" />
 </head>
 <body>
 
-    <div class="topbar">
-        <div class="brand">Control de Asistencia</div>
-
-        <div class="userbox">
-            @if (Session["USER"] != null)
-            {
-                <span>Usuario: @Session["USER"]</span>
-                <a href="@Url.Action("Logout", "Auth")" class="link">Cerrar sesión</a>
-            }
-            else
-            {
-                <span>No autenticado</span>
-            }
-        </div>
-    </div>
-
     @{
         var rol = Session["ROLE"] == null ? "" : Session["ROLE"].ToString();
+        var usuario = Session["USER"] == null ? "" : Session["USER"].ToString();
+        var controller = ViewContext.RouteData.Values["controller"].ToString();
     }
 
-<div class="menu">
-   
-    <a href="@Url.Action("Index", "Home")">Inicio</a>
+    <header class="app-header">
+        <div class="header-main">
+            <div class="brand-area">
+                <div class="brand-icon">✓</div>
+                <div>
+                    <div class="brand-title">Control de Asistencia</div>
+                    <div class="brand-subtitle">Cursos Virtuales</div>
+                </div>
+            </div>
 
-    @if (rol == "Admin")
-    {
-        <a href="@Url.Action("Index", "Usuarios")">Usuarios</a>
-        <a href="@Url.Action("Index", "Maestros")">Maestros</a>
-    }
+            <div class="user-area">
+                @if (!string.IsNullOrWhiteSpace(usuario))
+                {
+                    <span class="user-pill">👤 @usuario</span>
+                    <a href="@Url.Action("Logout", "Auth")" class="logout-link">Cerrar sesión</a>
+                }
+                else
+                {
+                    <span class="user-pill">No autenticado</span>
+                }
+            </div>
+        </div>
 
-    @if (rol == "Admin" || rol == "Maestro")
-    {
-        <a href="@Url.Action("Index", "Cursos")">Cursos</a>
-    }
+        <nav class="nav-menu">
+            <a class="@(controller == "Home" ? "active" : "")"
+               href="@Url.Action("Index", "Home")">Inicio</a>
 
-    @if (rol == "Admin" || rol == "Maestro" || rol == "Estudiante")
-    {
-        <a href="@Url.Action("Index", "Clase")">Registrar Asistencia</a>
-        <a href="#">Estadísticas</a>
-}
-</div>
+            @if (rol == "Admin")
+            {
+                <a class="@(controller == "Usuarios" ? "active" : "")"
+                   href="@Url.Action("Index", "Usuarios")">Usuarios</a>
 
-    <div class="container">
+                <a class="@(controller == "Maestros" ? "active" : "")"
+                   href="@Url.Action("Index", "Maestros")">Maestros</a>
+            }
+
+            @if (rol == "Admin" || rol == "Maestro")
+            {
+                <a class="@(controller == "Cursos" ? "active" : "")"
+                   href="@Url.Action("Index", "Cursos")">Cursos</a>
+            }
+
+            @if (rol == "Admin" || rol == "Maestro" || rol == "Estudiante")
+            {
+                <a class="@(controller == "Asistencias" ? "active" : "")"
+                   href="@Url.Action("Index", "Asistencias")">Registrar Asistencia</a>
+
+                <a class="@(controller == "Estadisticas" ? "active" : "")"
+                   href="@Url.Action("Index", "Estadisticas")">Estadísticas</a>
+            }
+
+            @if (rol == "Admin" || rol == "Maestro")
+            {
+                <a class="@(controller == "Alumnos" ? "active" : "")"
+                   href="@Url.Action("Index", "Alumnos")">Estudiantes</a>
+
+                <a class="@(controller == "CursoEstudiantes" ? "active" : "")"
+                   href="@Url.Action("Index", "CursoEstudiantes")">Asignar Cursos</a>
+            }
+        </nav>
+    </header>
+
+    <main class="container">
         @RenderBody()
-    </div>
+    </main>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.6.0.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.5/jquery.validate.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/mvc/5.2.3/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var success = '@TempData["Success"]';
+            var error = '@TempData["Error"]';
+            var warning = '@TempData["Warning"]';
+
+            if (success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: success
+                });
+            }
+
+            if (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error
+                });
+            }
+
+            if (warning) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Aviso',
+                    text: warning
+                });
+            }
+        });
+    </script>
+
+    @RenderSection("scripts", required: false)
+
 </body>
 </html>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-
-        var success = '@TempData["Success"]';
-        var error = '@TempData["Error"]';
-        var warning = '@TempData["Warning"]';
-
-        if (success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: success,
-                confirmButtonColor: '#3085d6'
-            });
-        }
-
-        if (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: error,
-                confirmButtonColor: '#d33'
-            });
-        }
-
-        if (warning) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Aviso',
-                text: warning,
-                confirmButtonColor: '#f39c12'
-            });
-        }
-
-    });
-</script>
-
-<script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.6.0.min.js"></script>
-<script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.19.5/jquery.validate.min.js"></script>
-<script src="https://ajax.aspnetcdn.com/ajax/mvc/5.2.3/jquery.validate.unobtrusive.min.js"></script>

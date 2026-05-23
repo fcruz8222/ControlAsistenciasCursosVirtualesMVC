@@ -1,0 +1,92 @@
+@model ControlAsistenciasCursosVirtuales.Models.AsistenciaConfirmacionViewModel
+
+@{
+    ViewBag.Title = "Asistencia Confirmada";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="confirm-card">
+    <div class="confirm-icon">OK</div>
+    <h2>@(Model.EstadoAsistencia == "FINALIZADO" ? "Curso finalizado" : "Curso iniciado")</h2>
+    <p>
+        @(Model.EstadoAsistencia == "FINALIZADO"
+            ? "La salida fue registrada correctamente."
+            : "La hora de entrada fue registrada correctamente.")
+    </p>
+
+    <div class="confirm-grid">
+        <div>
+            <span>Curso</span>
+            <strong>@Model.CursoNombre</strong>
+        </div>
+        <div>
+            <span>Fecha limite</span>
+            <strong>
+                @(Model.CursoFechaFin.HasValue
+                    ? Model.CursoFechaFin.Value.ToString("yyyy-MM-dd")
+                    : "No definida")
+            </strong>
+        </div>
+        <div>
+            <span>Participante</span>
+            <strong>@Model.NombreParticipante</strong>
+        </div>
+        <div>
+            <span>Hora entrada</span>
+            <strong>@(Model.FechaEntrada.HasValue ? Model.FechaEntrada.Value.ToString("yyyy-MM-dd HH:mm") : Model.FechaRegistro.ToString("yyyy-MM-dd HH:mm"))</strong>
+        </div>
+        <div>
+            <span>Hora salida</span>
+            <strong>@(Model.FechaSalida.HasValue ? Model.FechaSalida.Value.ToString("yyyy-MM-dd HH:mm") : "En curso")</strong>
+        </div>
+        <div>
+            <span>Tiempo cursado en esta sesion</span>
+            <strong>@(Model.DuracionMinutos.HasValue ? Model.DuracionMinutos + " min" : "En curso")</strong>
+        </div>
+        <div>
+            <span>Tiempo restante del curso</span>
+            <strong>@(Model.TiempoRestanteMinutos.HasValue ? Model.TiempoRestanteMinutos + " min" : "Pendiente")</strong>
+        </div>
+        <div>
+            <span>IP servidor</span>
+            <strong>@Model.IpRegistro</strong>
+        </div>
+        <div>
+            <span>IP publica</span>
+            <strong>@(string.IsNullOrWhiteSpace(Model.IpPublica) ? "No disponible" : Model.IpPublica)</strong>
+        </div>
+        <div>
+            <span>Ubicacion</span>
+            <strong>
+                @(Model.Latitud.HasValue && Model.Longitud.HasValue
+                    ? Model.Latitud + ", " + Model.Longitud
+                    : "No disponible")
+            </strong>
+        </div>
+        <div>
+            <span>Correo</span>
+            <strong>@(string.IsNullOrWhiteSpace(Model.Correo) ? "No indicado" : Model.Correo)</strong>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Observacion))
+    {
+        <div class="confirm-note">
+            <span>Observacion</span>
+            <p>@Model.Observacion</p>
+        </div>
+    }
+
+    <div class="modal-footer">
+        @if (Model.EstadoAsistencia != "FINALIZADO")
+        {
+            using (Html.BeginForm("Salir", "Asistencias", FormMethod.Post, new { style = "display:inline;" }))
+            {
+                <input type="hidden" name="id" value="@Model.IdRegistro" />
+                <button type="submit" class="btn btn-sm">Registrar salida</button>
+            }
+        }
+        <a href="@Url.Action("Index", "Asistencias")" class="btn btn-sm">Volver a asistencias</a>
+        <a href="@Url.Action("Index", "Estadisticas")" class="btn btn-sm btn-secondary">Ver estadisticas</a>
+    </div>
+</div>

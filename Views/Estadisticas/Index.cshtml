@@ -1,0 +1,172 @@
+@model ControlAsistenciasCursosVirtuales.Models.EstadisticasIndexViewModel
+
+@{
+    ViewBag.Title = "Estadisticas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var mayorTotal = 0;
+
+    if (Model.PorCurso != null)
+    {
+        foreach (var curso in Model.PorCurso)
+        {
+            if (curso.TotalAsistencias > mayorTotal)
+            {
+                mayorTotal = curso.TotalAsistencias;
+            }
+        }
+    }
+}
+
+<div class="stats-page stats-card">
+    <div class="stats-header">
+        <div>
+            <h2>Estadisticas y Reportes</h2>
+            <p>Resumen general de asistencias registradas por curso y participante.</p>
+        </div>
+    </div>
+
+    <div class="stats-filter-card">
+        @using (Html.BeginForm("Index", "Estadisticas", FormMethod.Get))
+        {
+            <div class="stats-filter-grid">
+                <div class="field">
+                    <label>Curso</label>
+                    @Html.DropDownListFor(m => m.IdCurso, Model.Cursos)
+                </div>
+
+                <div class="field">
+                    <label>Desde</label>
+                    @Html.TextBoxFor(m => m.FechaInicio, new { type = "date" })
+                </div>
+
+                <div class="field">
+                    <label>Hasta</label>
+                    @Html.TextBoxFor(m => m.FechaFin, new { type = "date" })
+                </div>
+
+                <div class="stats-filter-actions">
+                    <button type="submit" class="btn btn-sm">Filtrar</button>
+
+                    <a href="@Url.Action("Index", "Estadisticas")" class="btn btn-sm btn-secondary">
+                        Limpiar
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-icon stat-blue">A</div>
+            <span>Asistencias registradas</span>
+            <strong>@Model.TotalAsistencias</strong>
+            <small>Total dentro del filtro actual</small>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-icon stat-green">C</div>
+            <span>Cursos con asistencia</span>
+            <strong>@Model.TotalCursosConAsistencia</strong>
+            <small>Cursos que ya tienen registros</small>
+        </div>
+
+        <div class="stat-box">
+            <div class="stat-icon stat-orange">P</div>
+            <span>Participantes unicos</span>
+            <strong>@Model.TotalParticipantes</strong>
+            <small>Calculado por correo o nombre</small>
+        </div>
+    </div>
+
+    <div class="stats-section-heading">
+        <div>
+            <h3>Asistencias por Curso</h3>
+            <p>Comparativo de registros acumulados por cada curso.</p>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Maestro</th>
+                    <th>Total</th>
+                    <th>Avance</th>
+                    <th>Ultima asistencia</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model.PorCurso)
+                {
+                    var porcentaje = mayorTotal > 0 ? (item.TotalAsistencias * 100 / mayorTotal) : 0;
+
+                    <tr>
+                        <td>
+                            <strong>@item.CursoNombre</strong>
+                            <span class="muted-text">ID @item.IdCurso</span>
+                        </td>
+                        <td>@item.MaestroNombre</td>
+                        <td>
+                            <span class="count-pill">@item.TotalAsistencias</span>
+                        </td>
+                        <td>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="width:@porcentaje%;"></div>
+                            </div>
+                        </td>
+                        <td>
+                            @(item.UltimaAsistencia.HasValue
+                                ? item.UltimaAsistencia.Value.ToString("yyyy-MM-dd HH:mm")
+                                : "Sin registros")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="stats-section-heading">
+        <div>
+            <h3>Registros Recientes</h3>
+            <p>Ultimas asistencias capturadas en el sistema.</p>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Curso</th>
+                    <th>Participante</th>
+                    <th>Correo</th>
+                    <th>Fecha Registro</th>
+                    <th>IP</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var item in Model.Recientes)
+                {
+                    <tr>
+                        <td><strong>@item.CursoNombre</strong></td>
+                        <td>
+                            @item.NombreParticipante
+                            @if (!string.IsNullOrWhiteSpace(item.Observacion))
+                            {
+                                <span class="muted-text">@item.Observacion</span>
+                            }
+                        </td>
+                        <td>@item.Correo</td>
+                        <td>@item.FechaRegistro.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            <span class="ip-pill">@item.IpRegistro</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
