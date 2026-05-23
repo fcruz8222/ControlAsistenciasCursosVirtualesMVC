@@ -4,9 +4,13 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data.SqlClient;
 using System.Web.Mvc;
+using ControlAsistenciasCursosVirtuales.Helpers;
+using ControlAsistenciasCursosVirtuales.Models;
+using ControlAsistenciasCursosVirtuales.Filters;
 
 namespace ControlAsistenciasCursosVirtuales.Controllers
 {
+    [RoleAuthorize("Admin", "Maestro")]
     public class AlumnosController : Controller
     {
         private readonly string cadena = ConfigurationManager.ConnectionStrings["cnBD"].ConnectionString;
