@@ -110,7 +110,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                        ra.NombreParticipante,
                        ra.Correo,
                        ra.FechaRegistro,
-                       ra.IpRegistro,
+                       ra.IpPublica,
                        ra.Observacion
                 FROM dbo.RegistroAsistencia ra
                 INNER JOIN dbo.Cursos c ON c.IdCurso = ra.IdCurso
@@ -136,7 +136,7 @@ namespace ControlAsistenciasCursosVirtuales.Controllers
                     NombreParticipante = r["NombreParticipante"].ToString(),
                     Correo = r["Correo"] == DBNull.Value ? "" : r["Correo"].ToString(),
                     FechaRegistro = Convert.ToDateTime(r["FechaRegistro"]),
-                    IpRegistro = r["IpRegistro"] == DBNull.Value ? "" : r["IpRegistro"].ToString(),
+                    IpPublica = r["IpPublica"] == DBNull.Value ? "" : r["IpPublica"].ToString(),
                     Observacion = r["Observacion"] == DBNull.Value ? "" : r["Observacion"].ToString()
                 });
             }
